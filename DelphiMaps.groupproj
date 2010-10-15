@@ -1,0 +1,72 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{304059C2-3677-4185-BCCD-E46FFDD08C70}</ProjectGuid>
+		</PropertyGroup>
+		<ItemGroup>
+			<Projects Include="packages\DelphiMapsDesignTime.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="demos\DemoStaticMap\DemoStaticMap.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="demos\DemoGoogleMaps\DemoGoogleMaps.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="demos\DemoDirections\DemoDirections.dproj">
+				<Dependencies/>
+			</Projects>
+		</ItemGroup>
+		<ProjectExtensions>
+			<Borland.Personality>Default.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<Default.Personality/>
+			</BorlandProject>
+		</ProjectExtensions>
+		<Target Name="DelphiMapsDesignTime">
+			<MSBuild Projects="packages\DelphiMapsDesignTime.dproj"/>
+		</Target>
+		<Target Name="DelphiMapsDesignTime:Clean">
+			<MSBuild Projects="packages\DelphiMapsDesignTime.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="DelphiMapsDesignTime:Make">
+			<MSBuild Projects="packages\DelphiMapsDesignTime.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="DemoStaticMap">
+			<MSBuild Projects="demos\DemoStaticMap\DemoStaticMap.dproj"/>
+		</Target>
+		<Target Name="DemoStaticMap:Clean">
+			<MSBuild Projects="demos\DemoStaticMap\DemoStaticMap.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="DemoStaticMap:Make">
+			<MSBuild Projects="demos\DemoStaticMap\DemoStaticMap.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="DemoGoogleMaps">
+			<MSBuild Projects="demos\DemoGoogleMaps\DemoGoogleMaps.dproj"/>
+		</Target>
+		<Target Name="DemoGoogleMaps:Clean">
+			<MSBuild Projects="demos\DemoGoogleMaps\DemoGoogleMaps.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="DemoGoogleMaps:Make">
+			<MSBuild Projects="demos\DemoGoogleMaps\DemoGoogleMaps.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="DemoDirections">
+			<MSBuild Projects="demos\DemoDirections\DemoDirections.dproj"/>
+		</Target>
+		<Target Name="DemoDirections:Clean">
+			<MSBuild Projects="demos\DemoDirections\DemoDirections.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="DemoDirections:Make">
+			<MSBuild Projects="demos\DemoDirections\DemoDirections.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="Build">
+			<CallTarget Targets="DelphiMapsDesignTime;DemoStaticMap;DemoGoogleMaps;DemoDirections"/>
+		</Target>
+		<Target Name="Clean">
+			<CallTarget Targets="DelphiMapsDesignTime:Clean;DemoStaticMap:Clean;DemoGoogleMaps:Clean;DemoDirections:Clean"/>
+		</Target>
+		<Target Name="Make">
+			<CallTarget Targets="DelphiMapsDesignTime:Make;DemoStaticMap:Make;DemoGoogleMaps:Make;DemoDirections:Make"/>
+		</Target>
+		<Import Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')" Project="$(BDS)\Bin\CodeGear.Group.Targets"/>
+	</Project>
