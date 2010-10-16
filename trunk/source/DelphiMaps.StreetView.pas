@@ -16,6 +16,42 @@ unit DelphiMaps.StreetView;
 
 interface
 
+uses
+  DelphiMaps.Browser;
+
+const
+  StreetViewFileName = 'StreetView.html';
+
+type
+  TStreetView=class(TBrowserControl)
+    procedure Init;
+  published
+    class function GetHTMLResourceName: String;
+
+  end;
+
 implementation
+
+uses
+  IoUtils,
+  SysUtils;
+
+{ TStreetMap }
+
+class function TStreetView.GetHTMLResourceName: String;
+begin
+  Result := 'STREETVIEW_HTML';
+end;
+
+procedure TStreetView.Init;
+var
+  LHtmlFileName : String;
+begin
+  Browser.OnDocumentComplete := WebBrowserDocumentComplete;
+  LHtmlFileName := TPath.GetTempPath+StreetViewFileName;
+  SaveHtml(LHtmlFileName);
+  if FileExists(LHtmlFileName) then
+    Navigate('file://' + LHtmlFileName);
+end;
 
 end.

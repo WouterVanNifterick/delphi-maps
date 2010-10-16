@@ -18,6 +18,8 @@ unit DelphiMaps.Browser;
 interface
 
 uses
+  Controls,
+  Graphics,
   Classes,
   SHDocVw,
   MSHTML;
@@ -51,12 +53,88 @@ type
   end;
 
 
+  IJsClassWrapper=interface(IInterface)
+    function JsClassName:String;
+
+    function GetJsVarName:String;
+    procedure SetJsVarName(const aVarName:String);
+    property JsVarName:String read GetJsVarName write SetJsVarName;
+    function ToJavaScript:String;
+  end;
+
+  TJsClassWrapper=class abstract(TInterfacedObject,IJsClassWrapper)
+  private
+//    FId:String;
+    FJsVarName:String;
+    function GetJsVarName:String;
+    procedure SetJsVarName(const aVarName:String);
+  public
+    constructor Create;
+    function JsClassName:String;virtual;abstract;
+    function ToJavaScript:String;virtual;abstract;
+    property JsVarName:String read GetJsVarName write SetJsVarName;
+  end;
+
+
+  TBrowserControl=class(TCustomControl)
+  strict private
+    FBrowser:TBrowser;
+    FJsVarName: String;
+    procedure Init;
+    procedure SetJsVarName(const Value: String);
+  protected
+    class function GetHTMLResourceName:String;virtual;
+    procedure SaveHtml(const aFileName:string);virtual;
+    procedure Loaded; override;
+    procedure Navigate(const URL:String);
+  public
+    constructor Create(AOwner: TComponent);override;
+    destructor Destroy;override;
+    procedure HandleOnResize(Sender:TObject);
+    procedure CheckResize;
+    property Browser : TBrowser read FBrowser write FBrowser;
+  published
+    property JsVarName:String read FJsVarName write SetJsVarName;
+    procedure ExecJavaScript(const aScript:String);
+    procedure WebBrowserDocumentComplete(ASender: TObject; const pDisp: IDispatch; var URL: OleVariant);
+    property Align;
+    property OnClick;
+    property OnResize;
+//    property OnEnter;
+//    property OnExit;
+//    property OnKeyDown;
+//    property OnKeyPress;
+//    property OnKeyUp;
+//    property OnDblClick;
+    property Anchors;
+    property BoundsRect;
+    property ShowHint;
+    property Visible;
+  end;
+
+
+function ColorToHtml(DColor:TColor):string;
 
 
 implementation
 
 uses
+  Windows,
+  SysUtils,
   ActiveX;
+
+
+function ColorToHtml(DColor:TColor):string;
+var
+  tmpRGB : TColor;
+begin
+  tmpRGB := ColorToRGB(DColor) ;
+  Result:=Format('#%.2x%.2x%.2x',
+                 [GetRValue(tmpRGB),
+                  GetGValue(tmpRGB),
+                  GetBValue(tmpRGB)]) ;
+end;
+
 
 { TBrowser }
 
@@ -212,7 +290,120 @@ begin
 end;
 
 
+{ TJsClassWrapper }
 
+constructor TJsClassWrapper.Create;
+begin
+  FJsVarName := '';
+end;
+
+function TJsClassWrapper.GetJsVarName: String;
+begin
+  Result := FJsVarName;
+end;
+
+
+procedure TJsClassWrapper.SetJsVarName(const aVarName: String);
+begin
+  JsVarName := aVarName;
+end;
+
+
+{ TBrowserControl }
+
+procedure TBrowserControl.Init;
+begin
+  Browser.OnDocumentComplete := WebBrowserDocumentComplete;
+end;
+
+constructor TBrowserControl.Create(AOwner: TComponent);
+begin
+  inherited;
+  FBrowser := TBrowser.Create(self);
+  FBrowser.Resizable := False;
+  FBrowser.Silent := True;
+  TWinControl(FBrowser).Parent := Self;
+  FBrowser.Align := alClient;
+  FBrowser.Show;
+  JsVarName := Name;
+  Init;
+end;
+
+
+destructor TBrowserControl.Destroy;
+begin
+  inherited;
+end;
+
+procedure TBrowserControl.ExecJavaScript(const aScript: String);
+begin
+  Browser.ExecJavaScript(aScript);
+end;
+
+
+class function TBrowserControl.GetHTMLResourceName: String;
+begin
+  Result := '';
+end;
+
+procedure TBrowserControl.Loaded;
+begin
+  inherited;
+  JsVarName := Name;
+end;
+
+procedure TBrowserControl.Navigate(const URL: String);
+begin
+  Browser.Navigate(URL);
+end;
+
+
+procedure TBrowserControl.WebBrowserDocumentComplete(ASender: TObject;
+  const pDisp: IDispatch; var URL: OleVariant);
+begin
+
+end;
+
+procedure TBrowserControl.SaveHtml(const aFileName:String);
+var
+  LResName: string;
+  ResStream: TResourceStream;
+  FileStream: TFileStream;
+begin
+  LResName := GetHTMLResourceName;
+
+  if LResName='' then
+    Exit;
+
+  ResStream := TResourceStream.Create(hInstance, LResName, RT_RCDATA) ;
+  try
+    FileStream := TFileStream.Create(aFileName, fmCreate) ;
+    try
+      FileStream.CopyFrom(ResStream, 0) ;
+    finally
+      FileStream.Free;
+    end;
+  finally
+    ResStream.Free;
+  end;
+end;
+
+
+procedure TBrowserControl.CheckResize;
+begin
+  ExecJavaScript(JsVarName+'.checkResize();');
+end;
+
+procedure TBrowserControl.HandleOnResize(Sender: TObject);
+begin
+  CheckResize;
+end;
+
+
+procedure TBrowserControl.SetJsVarName(const Value: String);
+begin
+  FJsVarName := Value;
+end;
 
 
 end.
