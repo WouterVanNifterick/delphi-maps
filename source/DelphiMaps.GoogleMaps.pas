@@ -20,16 +20,13 @@ unit DelphiMaps.GoogleMaps;
 interface
 
 uses
-  Controls,
-  Dialogs,
-  ActiveX,
-  StdCtrls,
-  ExtCtrls,
-  SysUtils,
   Classes,
+  Controls,
+  SysUtils,
   Contnrs,
   Forms,
   StrUtils,
+  Graphics,
   DelphiMaps.Browser,
   DelphiMaps.DouglasPeuckers
   ;
@@ -43,10 +40,8 @@ const
 
 type
   TPointFloat2D = DelphiMaps.DouglasPeuckers.TPointFloat2D;
-
   TGoogleMapControlType = (MC_NONE=1,MC_SMALL,MC_LARGE);
   TGoogleMapType        = (MT_ROADMAP, MT_SATELLITE, MT_TERRAIN, MT_HYBRID);
-
   TStaticMapType        = (ST_ROADMAP, ST_SATELLITE, ST_TERRAIN, ST_HYBRID);
 
 const
@@ -58,29 +53,8 @@ type
 
   GIcon             = class end; // to be implemented
 
-  IJsClassWrapper=interface(IInterface)
-    function JsClassName:String;
 
-    function GetJsVarName:String;
-    procedure SetJsVarName(const aVarName:String);
-    property JsVarName:String read GetJsVarName write SetJsVarName;
-    function ToJavaScript:String;
-  end;
-
-  TJsClassWrapper=class abstract(TInterfacedObject,IJsClassWrapper)
-  private
-//    FId:String;
-    FJsVarName:String;
-    function GetJsVarName:String;
-    procedure SetJsVarName(const aVarName:String);
-    constructor Create;
-  public
-    function JsClassName:String;virtual;abstract;
-    function ToJavaScript:String;virtual;abstract;
-    property JsVarName:String read GetJsVarName write SetJsVarName;
-  end;
-
-  IHidable=interface(IInterface)
+  IGHidable=interface(IInterface)
     procedure hide;                         // Hides the object if the overlay is both currently visible and the overlay's supportsHide() method returns true. Note that this method will trigger the respective visibilitychanged event for each child overlay that fires that event (e.g. GMarker.visibilitychanged, GGroundOverlay.visibilitychanged, etc.). If no overlays are currently visible that return supportsHide() as true, this method has no effect. (Since 2.87)
     function  isHidden           : Boolean; // Returns true if the GGeoXml object is currently hidden, as changed by the GGeoXml.hide() method. Otherwise returns false. (Since 2.87)
     procedure show;                         // Shows the child overlays created by the GGeoXml object, if they are currently hidden. Note that this method will trigger the respective visibilitychanged event for each child overlay that fires that event (e.g. GMarker.visibilitychanged, GGroundOverlay.visibilitychanged). (Since 2.87)
@@ -197,11 +171,8 @@ type
     function Equals(aGLatLngBounds:TGLatLngBounds):Boolean;reintroduce;
   end;
 
-  TColor = integer;
-
   // abstract class.. subclassed by TGMarker and TGPolygon and TGPolyLine..
-
-  TGOverlay = class(TJsClassWrapper, IHidable)
+  TGOverlay = class(TJsClassWrapper, IGHidable)
   strict private
     FID: Integer;
     FGoogleMaps: TGoogleMaps;
@@ -242,7 +213,7 @@ type
   end;
 
 
-  TGInfoWindow = class(TGOverlay, IJsClassWrapper, IHidable)
+  TGInfoWindow = class(TGOverlay, IJsClassWrapper, IGHidable)
     procedure Maximize;
     procedure Restore;
   private
@@ -260,7 +231,7 @@ type
 
   // used to show a location on a map
   // can be dragged, can show a popup, can have custom colors and icon
-  TGMarker=class(TGOverlay,IJsClassWrapper,IHidable)
+  TGMarker=class(TGOverlay,IJsClassWrapper,IGHidable)
   strict private
     FCenter: TGLatLng;
     FDraggingEnabled: Boolean;
@@ -302,7 +273,7 @@ type
 
   end;
 
-  TGGeoXml = class(TGOverlay, IJsClassWrapper, IHidable)
+  TGGeoXml = class(TGOverlay, IJsClassWrapper, IGHidable)
   private
     FUrlOfXml: String;
     procedure SetUrlOfXml(const Value: String);
@@ -326,7 +297,7 @@ type
 
 
   // polygon class
-  TGPolygon=class(TGOverlay,IJsClassWrapper,IHidable)
+  TGPolygon=class(TGOverlay,IJsClassWrapper,IGHidable)
   private
     FCoordinates:Array of TGLatLng;
     FOpacity: double;
@@ -360,13 +331,13 @@ type
     class function PolyTypeStr: String;virtual;
   end;
 
-  TGPolyLine = class(TGPolygon, IJsClassWrapper, IHidable)
+  TGPolyLine = class(TGPolygon, IJsClassWrapper, IGHidable)
   published
     class function PolyTypeStr: String; override;
     function JsClassName: String; override;
   end;
 
-  TGCopyright = class(TGOverlay, IJsClassWrapper, IHidable)
+  TGCopyright = class(TGOverlay, IJsClassWrapper, IGHidable)
   strict private
     FminZoom: Integer;
     FID: Integer;
@@ -384,67 +355,22 @@ type
     constructor Create(aId: Integer; aBounds: TGLatLngBounds; aMinZoom: Integer; aText: String);
   end;
 
-  TGoogleMaps=class(TCustomControl)
+  TGoogleMaps=class(TBrowserControl)
   strict private
-    FWebBrowser:TBrowser;
+    FBrowser:TBrowser;
     FOverlays: TOverlayList;
     FMapType: TGoogleMapType;
     FLatLngCenter: TGLatLng;
-    FEnableDoubleClickZoom: Boolean;
-    FEnableContinuousZoom: Boolean;
     FJsVarName: String;
     FOpacity: Double;
-    procedure LoadHTML(URL:String);
+    procedure Navigate(const URL:String);
     procedure SetOverlays(const Value: TOverlayList);
     procedure Init;
-    procedure SaveGoogleMapsHtml(const aFileName:String);
     procedure SetLatLngCenter(const Value: TGLatLng);
-    procedure SetEnableContinuousZoom(const Value: Boolean);
-    procedure SetEnableDoubleClickZoom(const Value: Boolean);
     function GetLatLngCenter: TGLatLng;
     procedure SetMapType(AMapType:TGoogleMapType);
     procedure SetOpacity(const Value: Double);
     procedure SetJsVarName(const Value: String);
-
-{
-    property ParentCustomHint;
-    property Ctl3D;
-    property DragMode;
-    property DragKind;
-    property DockSite;
-    property BiDiMode;
-    property AutoSize;
-    property HelpContext;
-    property HelpKeyword;
-    property HelpType;
-    property ParentBackground;
-    property ParentBiDiMode;
-    property ParentCtl3D;
-    property BorderWidth;
-    property Brush;
-    property ClientRect;
-    property Canvas;
-    property Color;
-    property Caption;
-    property BevelEdges;
-    property BevelKind;
-    property BevelOuter;
-    property BevelWidth;
-    property UseDockManager;
-    property WheelAccumulator;
-
-    property OnMouseWheel;
-    property OnMouseWheelDown;
-    property OnMouseWheelUp;
-    property OnConstrainedResize;
-    property OnGetSiteInfo;
-    property Enabled;
-    property Action;
-    property Showing;
-    property Owner;
-    property OnCanResize;
-}
-
   protected
     procedure Loaded; override;
   public
@@ -454,20 +380,17 @@ type
     procedure SetCenter(Lat,Lng:Double;doPan:Boolean=false);overload;
     procedure SetCenter(LatLng:TGLatLng;doPan:Boolean=false);overload;
     procedure HandleOnResize(Sender:TObject);
-    procedure OnCommandStateChange(ASender: TObject; Command: Integer; Enable: WordBool);
 
 
     procedure CheckResize;
+    property Browser : TBrowser read FBrowser write FBrowser;
 
   published
     property Overlays     : TOverlayList read FOverlays write SetOverlays;
     property LatLngCenter : TGLatLng read GetLatLngCenter write SetLatLngCenter;
-    property EnableContinuousZoom:Boolean read FEnableContinuousZoom write SetEnableContinuousZoom default true;
-    property EnableDoubleClickZoom:Boolean read FEnableDoubleClickZoom write SetEnableDoubleClickZoom default true;
     property MapType:TGoogleMapType read FMapType write SetMapType;
     property Opacity:Double read FOpacity write SetOpacity;
     property JsVarName:String read FJsVarName write SetJsVarName;
-    property WebBrowser : TBrowser read FWebBrowser write FWebBrowser;
     procedure AddControl(ControlType:TGoogleMapControlType);
     function AddMarker(Lat,Lon:Double):TGMarker;
     procedure AddPolygon(GPolygon:TGPolygon);
@@ -483,57 +406,37 @@ type
     property Align;
     property OnClick;
     property OnResize;
-    property OnEnter;
-    property OnExit;
-    property OnKeyDown;
-    property OnKeyPress;
-    property OnKeyUp;
-    property OnDblClick;
+//    property OnEnter;
+//    property OnExit;
+//    property OnKeyDown;
+//    property OnKeyPress;
+//    property OnKeyUp;
+//    property OnDblClick;
     property Anchors;
     property BoundsRect;
     property ShowHint;
     property Visible;
+    class function GetHTMLResourceName:String;override;
   end;
-
-  // todo: create a PlaceMark class to be able to natively handle Google Earth KML responses
-
 
 {$R DelphiMaps.GoogleMaps.dcr}
 
 implementation
 
 uses
-  Math,Graphics,Windows, MSHTML,SHDocVw;
-
-
-
-function ColorToHtml(DColor:TColor):string;
-var
-  tmpRGB : TColor;
-begin
-  tmpRGB := ColorToRGB(DColor) ;
-  Result:=Format('#%.2x%.2x%.2x',
-                 [GetRValue(tmpRGB),
-                  GetGValue(tmpRGB),
-                  GetBValue(tmpRGB)]) ;
-end;
-
-
+  Math, Windows;
 
 { TGoogleMaps }
 
-
-
-
 procedure TGoogleMaps.Init;
 var
-  GoogleMapsFullFileName : String;
+  LHtmlFileName : String;
 begin
-  WebBrowser.OnDocumentComplete := WebBrowserDocumentComplete;
-  GoogleMapsFullFileName := IncludeTrailingPathDelimiter(ExtractFilePath(Application.ExeName))+GoogleMapsFileName;
-  SaveGoogleMapsHtml(GoogleMapsFullFileName);
-  if FileExists(GoogleMapsFullFileName) then
-    LoadHTML('file://' + GoogleMapsFullFileName);
+  Browser.OnDocumentComplete := WebBrowserDocumentComplete;
+  LHtmlFileName := IncludeTrailingPathDelimiter(ExtractFilePath(Application.ExeName))+GoogleMapsFileName;
+  SaveHtml(LHtmlFileName);
+  if FileExists(LHtmlFileName) then
+    Navigate('file://' + LHtmlFileName);
 
   FOverlays := TOverlayList.Create;
 end;
@@ -543,18 +446,14 @@ begin
   inherited;
 
   Color := 0;
-
   FLatLngCenter := TGLatLng.Create(52,5);
 
-  FEnableDoubleClickZoom := True;
-  FEnableContinuousZoom  := True;
-  FWEbBrowser := TBrowser.Create(self);
-  FWebBrowser.OnCommandStateChange := OnCommandStateChange;
-  FWEbBrowser.Resizable := False;
-  FWEbBrowser.Silent := True;
-  TWinControl(FWEbBrowser).Parent := Self;
-  FWebBrowser.Align := alClient;
-  FWebBrowser.Show;
+  FBrowser := TBrowser.Create(self);
+  FBrowser.Resizable := False;
+  FBrowser.Silent := True;
+  TWinControl(FBrowser).Parent := Self;
+  FBrowser.Align := alClient;
+  FBrowser.Show;
   JsVarName := Name;
   Init;
 end;
@@ -569,7 +468,7 @@ end;
 
 procedure TGoogleMaps.ExecJavaScript(const aScript: String);
 begin
-  WebBrowser.ExecJavaScript(aScript);
+  Browser.ExecJavaScript(aScript);
 end;
 
 procedure TGoogleMaps.AddControl(ControlType: TGoogleMapControlType);
@@ -604,34 +503,9 @@ begin
   JsVarName := Name;
 end;
 
-procedure TGoogleMaps.LoadHTML(URL: String);
+procedure TGoogleMaps.Navigate(const URL: String);
 begin
-  WebBrowser.Navigate(URL);
-end;
-
-procedure TGoogleMaps.OnCommandStateChange(ASender: TObject; Command: Integer;
-  Enable: WordBool);
-var
-  Doc: IHTMLDocument2;        // document object
-  Sel: IHTMLSelectionObject;  // current selection
-begin
-  // Check we have a valid web browser triggering this event
-  if not Assigned(ASender) or not (ASender is TBrowser) then
-    Exit;
-  // Check we have required command
-  if TOleEnum(Command) <> CSC_UPDATECOMMANDS then
-    Exit;
-  // Get ref to document object and check not nil
-  Doc := FWebBrowser.Document as IHTMLDocument2;
-  if not Assigned(Doc) then
-    Exit;
-  // Get ref to current selection
-  Sel := Doc.selection as IHTMLSelectionObject;
-  // If selection is of correct type then we have a mouse click
-  if Assigned(Sel) and (Sel.type_ = 'Text') then
-    // Make the web browser the form's active control
-    if Parent is TForm then
-      (Parent as TForm).ActiveControl := (ASender as TBrowser);
+  Browser.Navigate(URL);
 end;
 
 
@@ -662,30 +536,6 @@ begin
   FLatLngCenter.Lat := Lat;
   FLatLngCenter.Lng := Lng;
   ExecJavaScript(Format(JsVarName+'.'+Operation+'(new GLatLng(%g,%g));',[Lat,Lng]));
-end;
-
-procedure TGoogleMaps.SetEnableContinuousZoom(const Value: Boolean);
-begin
-//  if Value<>FEnableContinuousZoom then
-  begin
-    FEnableContinuousZoom := Value;
-    if FEnableContinuousZoom then
-      ExecJavaScript(JsVarName+'.enableContinuousZoom();')
-    else
-      ExecJavaScript(JsVarName+'.disableContinuousZoom();');
-  end;
-end;
-
-procedure TGoogleMaps.SetEnableDoubleClickZoom(const Value: Boolean);
-begin
-//  if Value<>FEnableDoubleClickZoom then
-  begin
-    FEnableDoubleClickZoom := Value;
-    if FEnableContinuousZoom then
-      ExecJavaScript(JsVarName+'.enableDoubleClickZoom();')
-    else
-      ExecJavaScript(JsVarName+'.disableDoubleClickZoom();');
-  end;
 end;
 
 procedure TGoogleMaps.SetLatLngCenter(const Value: TGLatLng);
@@ -722,6 +572,7 @@ end;
 procedure TGoogleMaps.WebBrowserDocumentComplete(ASender: TObject;
   const pDisp: IDispatch; var URL: OleVariant);
 begin
+
 end;
 
 
@@ -743,25 +594,11 @@ begin
     RemoveOverlay(Overlays.Items[index]);
 end;
 
-procedure TGoogleMaps.SaveGoogleMapsHtml(const aFileName:String);
-var
- ResStream: TResourceStream;
- FileStream: TFileStream;
+
+class function TGoogleMaps.GetHTMLResourceName: String;
 begin
-  ResStream := TResourceStream.Create(hInstance, 'GOOGLE_MAPS_HTML', RT_RCDATA) ;
-  try
-    FileStream := TFileStream.Create(aFileName, fmCreate) ;
-    try
-      FileStream.CopyFrom(ResStream, 0) ;
-    finally
-      FileStream.Free;
-    end;
-  finally
-    ResStream.Free;
-  end;
+  Result := 'GOOGLE_MAPS_HTML';
 end;
-
-
 
 function TGoogleMaps.GetLatLngCenter: TGLatLng;
 begin
@@ -1110,7 +947,7 @@ end;
 
 function TGOverlay.isHidden: Boolean;
 begin
-  Result := FGoogleMaps.WebBrowser.GetJsValue(JsVarName + '.isHidden()');
+  Result := FGoogleMaps.Browser.GetJsValue(JsVarName + '.isHidden()');
 end;
 
 function TGOverlay.JsClassName: string;
@@ -1463,24 +1300,6 @@ end;
 function TGInfoWindow.ToJavaScript: String;
 begin
   Result := GoogleMaps.JsVarName + '.getInfoWindowHtml();';
-end;
-
-{ TJsClassWrapper }
-
-constructor TJsClassWrapper.Create;
-begin
-  FJsVarName := '';
-end;
-
-function TJsClassWrapper.GetJsVarName: String;
-begin
-  Result := FJsVarName;
-end;
-
-
-procedure TJsClassWrapper.SetJsVarName(const aVarName: String);
-begin
-  JsVarName := aVarName;
 end;
 
 
