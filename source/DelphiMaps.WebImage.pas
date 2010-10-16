@@ -11,10 +11,10 @@ uses
   Jpeg;
 
 type
-  TWebImage = class(TPaintBox)
+  TWebImage = class(TImage)
   strict private
     FIsLoaded:Boolean;
-
+    FPicture:TPicture;
     procedure UpdateBitmap;
   protected
     FURL:String;
@@ -23,6 +23,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     procedure Refresh;virtual;
+    destructor Destroy; override;
   published
     property URL: String read GetURL write SetURL;
   end;
@@ -45,6 +46,13 @@ constructor TWebImage.Create(AOwner: TComponent);
 begin
   inherited;
   FIsLoaded := False;
+  FPicture := Tpicture.Create;
+end;
+
+destructor TWebImage.Destroy;
+begin
+  FreeAndNil(FPicture);
+  inherited;
 end;
 
 function TWebImage.GetURL: String;
@@ -70,7 +78,6 @@ procedure TWebImage.UpdateBitmap;
 var
   Download : TDownLoadURL;
   tmpName:string;
-  Picture:TPicture;
 begin
   if Width = 0 then
     Exit;
@@ -97,9 +104,8 @@ begin
     Download.ExecuteTarget(nil);
     if FileExists(TmpName) then
     begin
-      Picture := Tpicture.Create;
-      Picture.LoadFromFile(TmpName);
-      Canvas.Draw(0,0,Picture.Graphic);
+      FPicture.LoadFromFile(TmpName);
+      Canvas.Draw(0,0,FPicture.Graphic);
       FIsLoaded := true;
       TFile.Delete(TmpName);
     end;
