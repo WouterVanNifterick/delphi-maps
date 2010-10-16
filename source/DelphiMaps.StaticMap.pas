@@ -121,7 +121,6 @@ type
     FFormat: TGStaticMapsFormat;
     FLanguage: String;
     FSensor: Boolean;
-    FBitmap: TBitmap;
     FPaths: TStaticPaths;
     FUpdating:Boolean;
     procedure SetMapType(const Value: TStaticMapType);
@@ -130,7 +129,6 @@ type
     procedure SetFormat(const Value: TGStaticMapsFormat);
     procedure SetLanguage(const Value: String);
     procedure SetSensor(const Value: Boolean);
-    procedure SetBitmap(const Value: TBitmap);
   private
     FMapProvider: TStaticMapProvider;
     function GetMapURL: String;
@@ -141,7 +139,6 @@ type
   public
     destructor Destroy; override;
     constructor Create(AOwner: TComponent); override;
-    property Bitmap: TBitmap read FBitmap write SetBitmap;
     procedure BeginUpdate;
     procedure Endupdate;
 {
@@ -268,8 +265,6 @@ end;
 constructor TStaticMap.Create(AOwner: TComponent);
 begin
   inherited;
-  FBitmap := TBitmap.Create;
-  FBitmap.SetSize(Width, Height);
   FMarkers := TList<TGMarker>.Create;
   FPaths := TStaticPaths.Create;
   FCenter := TLocation.Create(self);
@@ -281,7 +276,6 @@ destructor TStaticMap.Destroy;
 begin
   FreeAndNil(FMarkers);
   FreeAndNil(FPaths);
-  FreeAndNil(FBitmap);
   inherited;
 end;
 
@@ -299,6 +293,7 @@ var
 begin
   LTolerance := 0;
   SB := TStringBuilder.Create;
+
   try
     repeat
       for LPath in Paths do
@@ -340,10 +335,6 @@ begin
   URL := GetMapURL;
 end;
 
-procedure TStaticMap.SetBitmap(const Value: TBitmap);
-begin
-  FBitmap := Value;
-end;
 
 procedure TStaticMap.SetFormat(const Value: TGStaticMapsFormat);
 begin
