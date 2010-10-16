@@ -2,8 +2,8 @@ object frmMain: TfrmMain
   Left = 0
   Top = 0
   Caption = 'DelphiMaps Static Demo'
-  ClientHeight = 414
-  ClientWidth = 668
+  ClientHeight = 474
+  ClientWidth = 703
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -18,24 +18,24 @@ object frmMain: TfrmMain
   TextHeight = 13
   object Panel1: TPanel
     Left = 0
-    Top = 29
-    Width = 668
-    Height = 385
+    Top = 52
+    Width = 703
+    Height = 422
     Align = alClient
     BevelOuter = bvNone
-    BorderWidth = 8
     TabOrder = 0
-    OnResize = Panel1Resize
-    ExplicitWidth = 746
+    ExplicitTop = 29
+    ExplicitHeight = 445
     object StaticMap1: TStaticMap
-      Left = 40
-      Top = 8
-      Width = 620
-      Height = 369
+      AlignWithMargins = True
+      Left = 42
+      Top = 3
+      Width = 658
+      Height = 416
       Align = alClient
       URL = 
         'http://maps.google.com/maps/api/staticmap?sensor=false&center=&m' +
-        'aptype=satellite&size=620x369&zoom=12'
+        'aptype=satellite&size=658x439&zoom=12'
       Zoom = 12
       MapType = ST_SATELLITE
       Format = mfPng
@@ -44,30 +44,33 @@ object frmMain: TfrmMain
       ExplicitLeft = 46
       ExplicitTop = 6
       ExplicitWidth = 698
+      ExplicitHeight = 369
     end
     object TrackBar1: TTrackBar
-      Left = 8
-      Top = 8
-      Width = 32
-      Height = 369
+      Left = 0
+      Top = 0
+      Width = 39
+      Height = 422
+      Hint = 'ZoomLevel'
       Align = alLeft
       Max = 18
       Orientation = trVertical
       Position = 14
       PositionToolTip = ptRight
       TabOrder = 0
+      TickMarks = tmBoth
       OnChange = TrackBar1Change
+      ExplicitHeight = 445
     end
   end
   object FlowPanel1: TFlowPanel
     Left = 0
     Top = 0
-    Width = 668
-    Height = 29
+    Width = 703
+    Height = 52
     Align = alTop
     AutoSize = True
     TabOrder = 1
-    ExplicitWidth = 746
     object Label1: TLabel
       AlignWithMargins = True
       Left = 4
@@ -76,7 +79,7 @@ object frmMain: TfrmMain
       Height = 13
       Caption = 'Center: '
     end
-    object Edit1: TEdit
+    object edCenter: TEdit
       AlignWithMargins = True
       Left = 50
       Top = 4
@@ -84,30 +87,39 @@ object frmMain: TfrmMain
       Height = 21
       Hint = 'Type address or coordinates, and press [ENTER]'
       TabOrder = 0
-      OnKeyDown = Edit1KeyDown
+      OnKeyDown = edCenterKeyDown
+    end
+    object btnSetCenter: TButton
+      Left = 174
+      Top = 1
+      Width = 27
+      Height = 25
+      Caption = 'Go'
+      TabOrder = 1
+      OnClick = btnSetCenterClick
     end
     object Label2: TLabel
       AlignWithMargins = True
-      Left = 177
+      Left = 204
       Top = 4
       Width = 54
       Height = 13
       Caption = 'Map Type: '
     end
-    object ComboBox1: TComboBox
+    object cmbMapType: TComboBox
       AlignWithMargins = True
-      Left = 237
+      Left = 264
       Top = 4
       Width = 145
       Height = 21
       Align = alLeft
       Style = csDropDownList
-      TabOrder = 1
-      OnChange = ComboBox1Change
+      TabOrder = 2
+      OnChange = cmbMapTypeChange
     end
     object Label3: TLabel
       AlignWithMargins = True
-      Left = 388
+      Left = 415
       Top = 4
       Width = 47
       Height = 13
@@ -115,13 +127,13 @@ object frmMain: TfrmMain
     end
     object cmbProvider: TComboBox
       AlignWithMargins = True
-      Left = 441
+      Left = 468
       Top = 4
       Width = 145
       Height = 21
       Align = alLeft
       Style = csDropDownList
-      TabOrder = 2
+      TabOrder = 3
       OnChange = cmbProviderChange
     end
     object LinkLabel1: TLinkLabel
@@ -131,7 +143,7 @@ object frmMain: TfrmMain
       Width = 83
       Height = 17
       Caption = '<a href="xxx">Open in browser</a>'
-      TabOrder = 3
+      TabOrder = 4
       UseVisualStyle = True
       OnLinkClick = LinkLabel1LinkClick
     end

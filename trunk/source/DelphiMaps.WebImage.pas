@@ -11,19 +11,23 @@ uses
   Jpeg;
 
 type
-  TWebImage = class(TImage)
+  TWebImage = class(TPaintBox)
   strict private
     FIsLoaded:Boolean;
     FPicture:TPicture;
+    FBitmap:TBitmap;
     procedure UpdateBitmap;
   protected
     FURL:String;
     function GetURL: String;virtual;
     procedure SetURL(const Value: String);
+    procedure Paint; override;
+    procedure Resize; override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Refresh;virtual;
     destructor Destroy; override;
+
   published
     property URL: String read GetURL write SetURL;
   end;
@@ -34,6 +38,9 @@ implementation
 
 uses
   IoUtils;
+
+resourcestring
+  StrLoading = 'Loading...';
 
 procedure Register;
 begin
@@ -46,11 +53,13 @@ constructor TWebImage.Create(AOwner: TComponent);
 begin
   inherited;
   FIsLoaded := False;
-  FPicture := Tpicture.Create;
+  FBitmap := TBitmap.Create;
+  FPicture := TPicture.Create;
 end;
 
 destructor TWebImage.Destroy;
 begin
+  FreeAndNil(FBitmap);
   FreeAndNil(FPicture);
   inherited;
 end;
@@ -60,9 +69,26 @@ begin
   Result := FURL;
 end;
 
+procedure TWebImage.Paint;
+begin
+  inherited;
+  if Assigned(FBitmap) then
+    Canvas.Draw(
+      (Width div 2)-(FBitmap.Width div 2),
+      (Height div 2)-(FBitmap.Height div 2),
+      FBitmap
+    );
+end;
+
 procedure TWebImage.Refresh;
 begin
   //
+end;
+
+procedure TWebImage.Resize;
+begin
+  inherited;
+  Paint;
 end;
 
 procedure TWebImage.SetURL(const Value: String);
@@ -90,8 +116,8 @@ begin
   if FIsLoaded then
   begin
     Canvas.Brush.Color := clWhite;
-    Canvas.Rectangle( 5, 5,Width-5, 35 );
-    Canvas.TextOut( 10, 10, 'Loading...' );
+    Canvas.Rectangle( 5, 5,Canvas.TextWidth(StrLoading)+25, 30 );
+    Canvas.TextOut( 10, 10, StrLoading );
     Update;
   end;
 
@@ -105,7 +131,9 @@ begin
     if FileExists(TmpName) then
     begin
       FPicture.LoadFromFile(TmpName);
-      Canvas.Draw(0,0,FPicture.Graphic);
+      FBitmap.SetSize( FPicture.Width, FPicture.Height );
+      FBitmap.Canvas.Draw(0,0,FPicture.Graphic);
+      Canvas.StretchDraw(Canvas.ClipRect,FBitmap);
       FIsLoaded := true;
       TFile.Delete(TmpName);
     end;
@@ -113,6 +141,5 @@ begin
     FreeAndNil(Download)
   end;
 end;
-
 
 end.
