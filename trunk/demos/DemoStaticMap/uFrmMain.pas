@@ -108,8 +108,7 @@ end;
 procedure TfrmMain.LinkLabel1LinkClick(Sender: TObject; const Link: string; LinkType: TSysLinkType);
 begin
   case LinkType of
-    sltURL:
-      ShellExecute(self.WindowHandle, 'open', PChar(StaticMap1.URL), nil, nil, SW_SHOWNORMAL);
+    sltURL: StaticMap1.OpenURL;
   end;
 end;
 
