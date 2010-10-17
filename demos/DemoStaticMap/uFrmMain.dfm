@@ -24,27 +24,21 @@ object frmMain: TfrmMain
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitTop = 29
-    ExplicitHeight = 445
     object StaticMap1: TStaticMap
-      AlignWithMargins = True
-      Left = 42
-      Top = 3
-      Width = 658
-      Height = 416
+      Left = 39
+      Top = 0
+      Width = 664
+      Height = 422
       Align = alClient
-      URL = 
-        'http://maps.google.com/maps/api/staticmap?sensor=false&center=&m' +
-        'aptype=satellite&size=658x439&zoom=12'
-      Zoom = 12
-      MapType = ST_SATELLITE
+      Zoom = 0
+      MapType = ST_ROADMAP
       Format = mfPng
       Sensor = False
       MapProvider = mpGoogleMaps
-      ExplicitLeft = 46
-      ExplicitTop = 6
-      ExplicitWidth = 698
-      ExplicitHeight = 369
+      ExplicitLeft = 192
+      ExplicitTop = 56
+      ExplicitWidth = 441
+      ExplicitHeight = 313
     end
     object TrackBar1: TTrackBar
       Left = 0
@@ -60,7 +54,6 @@ object frmMain: TfrmMain
       TabOrder = 0
       TickMarks = tmBoth
       OnChange = TrackBar1Change
-      ExplicitHeight = 445
     end
   end
   object FlowPanel1: TFlowPanel
