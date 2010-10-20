@@ -30,10 +30,6 @@ object frmMain: TfrmMain
       Align = alClient
       Caption = 'Search'
       TabOrder = 0
-      ExplicitLeft = 8
-      ExplicitTop = 8
-      ExplicitWidth = 219
-      ExplicitHeight = 78
       DesignSize = (
         237
         75)
@@ -45,7 +41,6 @@ object frmMain: TfrmMain
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 0
         OnChange = edSearchChange
-        ExplicitWidth = 193
       end
       object edFound: TEdit
         Left = 10
@@ -56,7 +51,6 @@ object frmMain: TfrmMain
         ParentColor = True
         ReadOnly = True
         TabOrder = 1
-        ExplicitWidth = 193
       end
     end
     object GroupBox1: TGroupBox
@@ -68,9 +62,6 @@ object frmMain: TfrmMain
       Align = alRight
       Caption = 'Position'
       TabOrder = 1
-      ExplicitLeft = 248
-      ExplicitTop = 1
-      ExplicitHeight = 103
       DesignSize = (
         166
         75)
@@ -84,6 +75,8 @@ object frmMain: TfrmMain
         EditLabel.Height = 13
         EditLabel.Caption = 'Lat'
         LabelPosition = lpLeft
+        ParentColor = True
+        ReadOnly = True
         TabOrder = 0
       end
       object edLon: TLabeledEdit
@@ -96,6 +89,8 @@ object frmMain: TfrmMain
         EditLabel.Height = 13
         EditLabel.Caption = 'Lon'
         LabelPosition = lpLeft
+        ParentColor = True
+        ReadOnly = True
         TabOrder = 1
       end
     end
@@ -105,11 +100,14 @@ object frmMain: TfrmMain
     Top = 81
     Width = 415
     Height = 266
+    JsVarName = 'GoogleMaps1'
     Align = alClient
     MapType = MT_ROADMAP
-    ExplicitLeft = 8
-    ExplicitTop = 108
-    ExplicitWidth = 196
-    ExplicitHeight = 69
+  end
+  object Timer1: TTimer
+    Interval = 50
+    OnTimer = Timer1Timer
+    Left = 32
+    Top = 40
   end
 end

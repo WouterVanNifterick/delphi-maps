@@ -364,6 +364,13 @@ type
     FLatLngCenter: TGLatLng;
     FJsVarName: String;
     FOpacity: Double;
+
+    Dummy:Boolean;
+    // hide in IDE by making dummy properties
+    property HelpContext:Boolean read Dummy;
+    property HelpKeyword:Boolean read Dummy;
+    property HelpType:Boolean read Dummy;
+
     procedure Navigate(const URL:String);
     procedure SetOverlays(const Value: TOverlayList);
     procedure Init;
@@ -405,7 +412,7 @@ type
     procedure ExecJavaScript(const aScript:String);
     procedure WebBrowserDocumentComplete(ASender: TObject; const pDisp: IDispatch; var URL: OleVariant);
     property Align;
-    property OnClick;
+//    property OnClick;
     property OnResize;
 //    property OnEnter;
 //    property OnExit;
@@ -415,7 +422,7 @@ type
 //    property OnDblClick;
     property Anchors;
     property BoundsRect;
-    property ShowHint;
+//    property ShowHint;
     property Visible;
     class function GetHTMLResourceName:String;override;
   end;
@@ -514,15 +521,14 @@ procedure TGoogleMaps.SetCenter(Lat, Lng, Alt: Double;doPan:Boolean=False);
 var
   Operation:String;
 begin
-  if DoPan then
-    Operation := 'panTo'
-  else
-    Operation := 'setCenter';
+  if (Lat=FLatLngCenter.Lat) and (FLatLngCenter.Lng = Lng)  then
+    Exit;
 
   DecimalSeparator := '.';
   FLatLngCenter.Lat := Lat;
   FLatLngCenter.Lng := Lng;
-  ExecJavaScript(Format(JsVarName+'.'+Operation+'(new google.maps.LatLng(%g,%g), %g);',[Lat,Lng,Alt]));
+
+  ExecJavaScript(Format(JsVarName+'.setCenter(new google.maps.LatLng(%g,%g), %g);',[Lat,Lng,Alt]));
 
 end;
 
@@ -530,6 +536,9 @@ procedure TGoogleMaps.SetCenter(Lat, Lng: Double;doPan:Boolean=False);
 var
   Operation:String;
 begin
+  if (Lat=FLatLngCenter.Lat) and (FLatLngCenter.Lng = Lng)  then
+    Exit;
+
   if DoPan then
     Operation := 'panTo'
   else
