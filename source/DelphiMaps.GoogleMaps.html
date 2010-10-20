@@ -11,6 +11,7 @@
     src="http://maps.google.com/maps/api/js?sensor=false">
 </script>
 <script type="text/javascript">
+  var map;
   function initialize()
   {
     var lMapCenter = new google.maps.LatLng(-34.397, 150.644);
@@ -20,7 +21,7 @@
       center: lMapCenter,
       mapTypeId: google.maps.MapTypeId.ROADMAP
     };
-    var map = new google.maps.Map(document.getElementById("map_canvas"), lOptions);
+    map = new google.maps.Map(document.getElementById("map_canvas"), lOptions);
   }
 
 </script>

@@ -40,9 +40,9 @@ object frmMain: TfrmMain
     Top = 29
     Width = 393
     Height = 292
-    MapType = MT_ROADMAP
     JsVarName = 'GoogleMaps1'
     Align = alClient
+    MapType = MT_ROADMAP
   end
   object FlowPanel1: TFlowPanel
     Left = 0

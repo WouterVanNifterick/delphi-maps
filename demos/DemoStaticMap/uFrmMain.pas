@@ -18,7 +18,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, DelphiMaps.GoogleMaps, ExtCtrls, ComCtrls, ToolWin,
   Generics.Collections, DelphiMaps.StaticMap, pngimage, StdCtrls,
-  DelphiMaps.WebImage;
+  DelphiMaps.WebImage, DelphiMaps.Location;
 
 type
   TfrmMain = class(TForm)

@@ -8,9 +8,9 @@ uses
 
 type
 
-  TLocationType = (ltCoordinates,ltText);
+  TLocationType = (ltCoordinates, ltText);
 
-  TLocation = class(TComponent)
+  TLocation = class
   private
     FText: String;
     FPoint: TGPoint;
@@ -23,15 +23,15 @@ type
     procedure DoOnChange;
   public
     function ToString: String; override;
+    constructor Create;overload;
     constructor Create(const aText: String); reintroduce; overload;
     constructor Create(Point: TGPoint); reintroduce; overload;
-  published
+  public
     property OnChange: TNotifyEvent read FOnChange write SetOnChange;
     property Text: String read FText write SetText;
     property Point: TGPoint read FPoint write SetPoint;
-    property LocationType:TLocationType read FLocationType write SetLocationType default ltText;
+    property LocationType: TLocationType read FLocationType write SetLocationType default ltText;
   end;
-
 
 implementation
 
@@ -42,18 +42,24 @@ uses
 
 constructor TLocation.Create(const aText: String);
 begin
-  inherited Create(nil);
-  FPoint := TGPoint.Create;
-  FText := aText;
+  Create;
   FLocationType := ltText;
+  FText := aText;
 end;
 
 constructor TLocation.Create(Point: TGPoint);
 begin
-  inherited Create(nil);
+  Create;
   FreeAndNil(FPoint);
   FPoint := Point;
   FLocationType := ltCoordinates;
+end;
+
+constructor TLocation.Create;
+begin
+  inherited;
+  FPoint := TGPoint.Create;
+
 end;
 
 procedure TLocation.DoOnChange;
@@ -64,7 +70,11 @@ end;
 
 procedure TLocation.SetLocationType(const Value: TLocationType);
 begin
+  if Value = FLocationType then
+    Exit;
+
   FLocationType := Value;
+  DoOnChange;
 end;
 
 procedure TLocation.SetOnChange(const Value: TNotifyEvent);
@@ -74,6 +84,9 @@ end;
 
 procedure TLocation.SetPoint(const Value: TGPoint);
 begin
+  if Value.Equals(FPoint) and (FLocationType = ltCoordinates) then
+    Exit;
+
   FPoint := Value;
   FLocationType := ltCoordinates;
   DoOnChange;
@@ -81,6 +94,9 @@ end;
 
 procedure TLocation.SetText(const Value: String);
 begin
+  if (Value = FText) and (FLocationType = ltText) then
+    Exit;
+
   FText := Value;
   FLocationType := ltText;
   DoOnChange;
@@ -90,7 +106,7 @@ function TLocation.ToString: String;
 begin
   Result := '';
 
-  if (FPoint=nil) or (FPoint.ToString='') then
+  if (FPoint = nil) or (FPoint.ToString = '') then
   begin
     LocationType := ltText;
     Exit(Text);
@@ -98,6 +114,5 @@ begin
 
   Exit(FPoint.ToString);
 end;
-
 
 end.

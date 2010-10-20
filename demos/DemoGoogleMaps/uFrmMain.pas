@@ -17,7 +17,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, CheckLst, DelphiMaps.LayerList, DelphiMaps.GoogleMaps,
-  ComCtrls, ExtCtrls;
+  ComCtrls, ExtCtrls, DelphiMaps.Browser;
 
 type
   TfrmMain = class(TForm)

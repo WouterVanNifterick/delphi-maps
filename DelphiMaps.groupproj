@@ -15,6 +15,12 @@
 			<Projects Include="demos\DemoDirections\DemoDirections.dproj">
 				<Dependencies/>
 			</Projects>
+			<Projects Include="demos\DemoStreetView\DemoStreetView.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="demos\DemoGeoCoder\DemoGeoCoder.dproj">
+				<Dependencies/>
+			</Projects>
 		</ItemGroup>
 		<ProjectExtensions>
 			<Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -59,14 +65,32 @@
 		<Target Name="DemoDirections:Make">
 			<MSBuild Projects="demos\DemoDirections\DemoDirections.dproj" Targets="Make"/>
 		</Target>
+		<Target Name="DemoStreetView">
+			<MSBuild Projects="demos\DemoStreetView\DemoStreetView.dproj"/>
+		</Target>
+		<Target Name="DemoStreetView:Clean">
+			<MSBuild Projects="demos\DemoStreetView\DemoStreetView.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="DemoStreetView:Make">
+			<MSBuild Projects="demos\DemoStreetView\DemoStreetView.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="DemoGeoCoder">
+			<MSBuild Projects="demos\DemoGeoCoder\DemoGeoCoder.dproj"/>
+		</Target>
+		<Target Name="DemoGeoCoder:Clean">
+			<MSBuild Projects="demos\DemoGeoCoder\DemoGeoCoder.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="DemoGeoCoder:Make">
+			<MSBuild Projects="demos\DemoGeoCoder\DemoGeoCoder.dproj" Targets="Make"/>
+		</Target>
 		<Target Name="Build">
-			<CallTarget Targets="DelphiMapsDesignTime;DemoStaticMap;DemoGoogleMaps;DemoDirections"/>
+			<CallTarget Targets="DelphiMapsDesignTime;DemoStaticMap;DemoGoogleMaps;DemoDirections;DemoStreetView;DemoGeoCoder"/>
 		</Target>
 		<Target Name="Clean">
-			<CallTarget Targets="DelphiMapsDesignTime:Clean;DemoStaticMap:Clean;DemoGoogleMaps:Clean;DemoDirections:Clean"/>
+			<CallTarget Targets="DelphiMapsDesignTime:Clean;DemoStaticMap:Clean;DemoGoogleMaps:Clean;DemoDirections:Clean;DemoStreetView:Clean;DemoGeoCoder:Clean"/>
 		</Target>
 		<Target Name="Make">
-			<CallTarget Targets="DelphiMapsDesignTime:Make;DemoStaticMap:Make;DemoGoogleMaps:Make;DemoDirections:Make"/>
+			<CallTarget Targets="DelphiMapsDesignTime:Make;DemoStaticMap:Make;DemoGoogleMaps:Make;DemoDirections:Make;DemoStreetView:Make;DemoGeoCoder:Make"/>
 		</Target>
 		<Import Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')" Project="$(BDS)\Bin\CodeGear.Group.Targets"/>
 	</Project>

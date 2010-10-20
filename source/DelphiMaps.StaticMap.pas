@@ -267,7 +267,7 @@ begin
   inherited;
   FMarkers := TList<TGMarker>.Create;
   FPaths := TStaticPaths.Create;
-  FCenter := TLocation.Create(self);
+  FCenter := TLocation.Create;
   FCenter.OnChange := HandleOnCenterChange;
   FUpdating := False;
 end;
@@ -276,6 +276,7 @@ destructor TStaticMap.Destroy;
 begin
   FreeAndNil(FMarkers);
   FreeAndNil(FPaths);
+  FreeAndNil(FCenter);
   inherited;
 end;
 

@@ -86,6 +86,7 @@ type
     function GetLon: Double;
   public
     function ToString: string; override;
+    function Equals(P:TGPoint):Boolean;reintroduce;
   published
     property Lat:Double read GetLat write SetLat;
     property Lon:Double read GetLon write SetLon;
@@ -518,9 +519,10 @@ begin
   else
     Operation := 'setCenter';
 
+  DecimalSeparator := '.';
   FLatLngCenter.Lat := Lat;
   FLatLngCenter.Lng := Lng;
-  ExecJavaScript(Format(JsVarName+'.'+Operation+'(new GLatLng(%g,%g), %g);',[Lat,Lng,Alt]));
+  ExecJavaScript(Format(JsVarName+'.'+Operation+'(new google.maps.LatLng(%g,%g), %g);',[Lat,Lng,Alt]));
 
 end;
 
@@ -533,9 +535,10 @@ begin
   else
     Operation := 'setCenter';
 
+  DecimalSeparator := '.';
   FLatLngCenter.Lat := Lat;
   FLatLngCenter.Lng := Lng;
-  ExecJavaScript(Format(JsVarName+'.'+Operation+'(new GLatLng(%g,%g));',[Lat,Lng]));
+  ExecJavaScript(Format('map'+'.'+Operation+'(new google.maps.LatLng(%g,%g));',[Lat,Lng]));
 end;
 
 procedure TGoogleMaps.SetLatLngCenter(const Value: TGLatLng);
@@ -1304,6 +1307,11 @@ end;
 
 
 { TGPoint }
+
+function TGPoint.Equals(P: TGPoint): Boolean;
+begin
+  Result:= (Self.FLat = p.Lat)and (self.Lon = p.Lon);
+end;
 
 function TGPoint.GetLat: Double;
 begin

@@ -24,6 +24,7 @@ implementation
 
 uses
   DelphiMaps.Googlemaps,
+  DelphiMaps.StreetView,
   DelphiMaps.LayerList,
   DelphiMaps.StaticMap,
   DelphiMaps.WebImage;
@@ -32,6 +33,7 @@ procedure Register;
 begin
   RegisterComponents('DelphiMaps', [
     TGoogleMaps,
+    TStreetView,
     TGoogleMapsLayersList,
     TStaticMap,
     TWebImage
