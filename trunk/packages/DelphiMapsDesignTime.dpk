@@ -46,6 +46,8 @@ contains
   DelphiMaps.WebImage in '..\source\DelphiMaps.WebImage.pas',
   DelphiMaps.GoogleDirectionsXML in '..\source\DelphiMaps.GoogleDirectionsXML.pas',
   DelphiMaps.GoogleDirections in '..\source\DelphiMaps.GoogleDirections.pas',
-  DelphiMaps.Location in '..\source\DelphiMaps.Location.pas';
+  DelphiMaps.Location in '..\source\DelphiMaps.Location.pas',
+  DelphiMaps.GeoCoder in '..\source\DelphiMaps.GeoCoder.pas',
+  DelphiMaps.GeoCoderXML in '..\source\DelphiMaps.GeoCoderXML.pas';
 
 end.

@@ -73,6 +73,8 @@
 			<DCCReference Include="..\source\DelphiMaps.GoogleDirectionsXML.pas"/>
 			<DCCReference Include="..\source\DelphiMaps.GoogleDirections.pas"/>
 			<DCCReference Include="..\source\DelphiMaps.Location.pas"/>
+			<DCCReference Include="..\source\DelphiMaps.GeoCoder.pas"/>
+			<DCCReference Include="..\source\DelphiMaps.GeoCoderXML.pas"/>
 			<RcCompile Include="..\source\DelphiMaps.StreetView_html.rc">
 				<Form>DelphiMaps.GoogleMaps_html.res</Form>
 			</RcCompile>

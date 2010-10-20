@@ -46,7 +46,7 @@ type
     Point:TLocation;
   end;
 
-  TWayPoints=class(TList<TDirectionsWAyPoint>)
+  TWayPoints=class(TList<TDirectionsWayPoint>)
     function ToString:string; override;
   end;
 
@@ -75,17 +75,19 @@ type
     function GetURL: String;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
   published
-    property origin: TLocation read Forigin write Setorigin; // (required) specifies the start location from which to calculate directions. This value may either be specified as a String (e.g. "Chicago, IL") or as a LatLng value.
-    property destination: TLocation read Fdestination write Setdestination; // (required) specifies the end location to which to calculate directions. This value may either be specified as a String (e.g. "Chicago, IL") or as a LatLng value.
-    property travelMode: TDirectionsTravelMode read FtravelMode write SettravelMode; // (required) specifies what mode of transport to use when calculating directions. Valid values are specified in Travel Modes below.
-    property unitSystem: TDirectionsUnitSystem read FunitSystem write SetunitSystem; // (optional) specifies what unit system to use when displaying results. Valid values are specified in Unit Systems below.
-    property waypoints: TWayPoints read Fwaypoints write Setwaypoints; // (optional) specifies an array of DirectionsWaypoints. Waypoints alter a route by routing it through the specified location(s). A waypoint is specified as an object literal with fields shown below:
-    property optimizeWaypoints: Boolean read FoptimizeWaypoints write SetoptimizeWaypoints; // (optional) specifies that the route using the supplied waypoints may be optimized to provide the shortest possible route. If true, the Directions service will return the reordered waypoints in an waypoint_order field
-    property provideRouteAlternatives: Boolean read FprovideRouteAlternatives write SetprovideRouteAlternatives; // (optional) when set to true specifies that the Directions service may provide more than one route alternative in the response. Note that providing route alternatives may increase the response time from the server.
-    property avoidHighways: Boolean read FavoidHighways write SetavoidHighways; // (optional) when set to true indicates that the calculated route(s) should avoid major highways, if possible.
-    property avoidTolls: Boolean read FavoidTolls write SetavoidTolls; // (optional) when set to true indicates that the calculated route(s) should avoid toll roads, if possible.
-    property region: String read Fregion write Setregion; // (optional) specifies the region code, specified as a ccTLD ("top-level domain") two-character value.
+    property Origin: TLocation read Forigin write Setorigin; // (required) specifies the start location from which to calculate directions. This value may either be specified as a String (e.g. "Chicago, IL") or as a LatLng value.
+    property Destination: TLocation read Fdestination write Setdestination; // (required) specifies the end location to which to calculate directions. This value may either be specified as a String (e.g. "Chicago, IL") or as a LatLng value.
+    property TravelMode: TDirectionsTravelMode read FtravelMode write SettravelMode; // (required) specifies what mode of transport to use when calculating directions. Valid values are specified in Travel Modes below.
+    property UnitSystem: TDirectionsUnitSystem read FunitSystem write SetunitSystem; // (optional) specifies what unit system to use when displaying results. Valid values are specified in Unit Systems below.
+    property Waypoints: TWayPoints read Fwaypoints write Setwaypoints; // (optional) specifies an array of DirectionsWaypoints. Waypoints alter a route by routing it through the specified location(s). A waypoint is specified as an object literal with fields shown below:
+    property OptimizeWaypoints: Boolean read FoptimizeWaypoints write SetoptimizeWaypoints; // (optional) specifies that the route using the supplied waypoints may be optimized to provide the shortest possible route. If true, the Directions service will return the reordered waypoints in an waypoint_order field
+    property ProvideRouteAlternatives: Boolean read FprovideRouteAlternatives write SetprovideRouteAlternatives; // (optional) when set to true specifies that the Directions service may provide more than one route alternative in the response. Note that providing route alternatives may increase the response time from the server.
+    property AvoidHighways: Boolean read FavoidHighways write SetavoidHighways; // (optional) when set to true indicates that the calculated route(s) should avoid major highways, if possible.
+    property AvoidTolls: Boolean read FavoidTolls write SetavoidTolls; // (optional) when set to true indicates that the calculated route(s) should avoid toll roads, if possible.
+    property Region: String read Fregion write Setregion; // (optional) specifies the region code, specified as a ccTLD ("top-level domain") two-character value.
 
     property URL:String read GetURL;
 
@@ -160,10 +162,18 @@ end;
 constructor TGoogleDirectionsRequest.Create(AOwner: TComponent);
 begin
   inherited;
-  Forigin := TLocation.Create(self);
-  Fdestination := TLocation.Create(self);
+  Forigin := TLocation.Create;
+  Fdestination := TLocation.Create;
   Fwaypoints := TWayPoints.Create;
 
+end;
+
+destructor TGoogleDirectionsRequest.Destroy;
+begin
+  FreeAndNil(Forigin);
+  FreeAndNil(Fdestination);
+  FreeAndNil(Fwaypoints);
+  inherited;
 end;
 
 function TGoogleDirectionsRequest.GetResponse: IDirections;
@@ -188,14 +198,14 @@ begin
     SB.Append('http://maps.googleapis.com/maps/api/directions/xml?sensor=false');
     SB.Append('&origin=');              SB.Append(Forigin.ToString);
     SB.Append('&destination=');        SB.Append(Fdestination.ToString);
-    SB.Append('&travelMode=');         SB.Append(GetEnumName(TypeInfo(TDirectionsTravelMode),ord(travelMode)));
-    SB.Append('&unitSystem=');         SB.Append(GetEnumName(TypeInfo(TDirectionsUnitSystem),ord(unitSystem)));
-    SB.Append('&waypoints=');          SB.Append(waypoints);
-    SB.Append('&optimizeWaypoints=');  SB.Append(optimizeWaypoints);
-    SB.Append('&provideRouteAlternatives='); SB.Append(provideRouteAlternatives);
-    SB.Append('&avoidHighways=');      SB.Append(avoidHighways);
-    SB.Append('&avoidTolls=');         SB.Append(avoidTolls);
-    SB.Append('&region=');             SB.Append(region);
+    SB.Append('&travelMode=');         SB.Append(GetEnumName(TypeInfo(TDirectionsTravelMode),ord(TravelMode)));
+    SB.Append('&unitSystem=');         SB.Append(GetEnumName(TypeInfo(TDirectionsUnitSystem),ord(UnitSystem)));
+    SB.Append('&waypoints=');          SB.Append(Waypoints);
+    SB.Append('&optimizeWaypoints=');  SB.Append(OptimizeWaypoints);
+    SB.Append('&provideRouteAlternatives='); SB.Append(ProvideRouteAlternatives);
+    SB.Append('&avoidHighways=');      SB.Append(AvoidHighways);
+    SB.Append('&avoidTolls=');         SB.Append(AvoidTolls);
+    SB.Append('&region=');             SB.Append(Region);
     Result := SB.ToString;
   finally
     SB.Free;

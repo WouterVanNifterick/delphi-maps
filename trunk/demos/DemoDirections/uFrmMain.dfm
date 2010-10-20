@@ -1,7 +1,7 @@
 object frmMain: TfrmMain
   Left = 0
   Top = 0
-  Caption = 'Directions'
+  Caption = 'DelphiMaps Directions Demo'
   ClientHeight = 462
   ClientWidth = 691
   Color = clBtnFace
@@ -33,8 +33,6 @@ object frmMain: TfrmMain
     ScrollBars = ssVertical
     TabOrder = 0
     WordWrap = False
-    ExplicitWidth = 402
-    ExplicitHeight = 322
   end
   object pnlTop: TPanel
     Left = 0
@@ -43,26 +41,27 @@ object frmMain: TfrmMain
     Height = 29
     Align = alTop
     TabOrder = 1
-    ExplicitWidth = 595
     object lblStart: TLabel
       AlignWithMargins = True
       Left = 4
       Top = 4
       Width = 31
-      Height = 13
+      Height = 21
       Align = alLeft
       Caption = 'From: '
       Layout = tlCenter
+      ExplicitHeight = 13
     end
     object lblEnd: TLabel
       AlignWithMargins = True
       Left = 239
       Top = 4
       Width = 19
-      Height = 13
+      Height = 21
       Align = alLeft
       Caption = 'To: '
       Layout = tlCenter
+      ExplicitHeight = 13
     end
     object edStart: TEdit
       AlignWithMargins = True
@@ -84,7 +83,6 @@ object frmMain: TfrmMain
       Caption = 'Get Directions'
       TabOrder = 2
       OnClick = btnGetDirectionsClick
-      ExplicitLeft = 498
     end
     object edEnd: TEdit
       AlignWithMargins = True
@@ -104,8 +102,6 @@ object frmMain: TfrmMain
     Height = 28
     Align = alBottom
     TabOrder = 2
-    ExplicitTop = 29
-    ExplicitWidth = 595
     object edURL: TEdit
       AlignWithMargins = True
       Left = 4
@@ -116,8 +112,7 @@ object frmMain: TfrmMain
       ParentColor = True
       ReadOnly = True
       TabOrder = 0
-      ExplicitTop = 2
-      ExplicitWidth = 587
+      ExplicitHeight = 21
     end
   end
   object TreeView1: TTreeView
@@ -130,8 +125,5 @@ object frmMain: TfrmMain
     Align = alLeft
     Indent = 19
     TabOrder = 3
-    ExplicitLeft = 6
-    ExplicitTop = 31
-    ExplicitHeight = 322
   end
 end
