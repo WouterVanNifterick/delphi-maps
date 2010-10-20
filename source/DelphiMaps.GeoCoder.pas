@@ -23,7 +23,7 @@ type
     Lon:Double;
     FormattedName:string;
     procedure ReverseGeoCode;
-    procedure GeoCode;
+    procedure GeoCode(aFormattedName:String='');
   private
     procedure LoadFromXML(XMLGeocodeResponseType: IXMLGeocodeResponseType);
     procedure LoadFromXMLFile(aFileName: string);
@@ -151,7 +151,7 @@ end;
 
 { TAddressRec }
 
-procedure TAddressRec.GeoCode;
+procedure TAddressRec.GeoCode(aFormattedName:String='');
 var
   LocalURL,
   LocalURLAddress:String;
@@ -160,6 +160,9 @@ var
 const
   GeoCodingBaseURL='http://maps.google.com/maps/api/geocode/xml?address=%s&sensor=false';
 begin
+  if aFormattedName<>'' then
+    FormattedName := aFormattedName;
+
   LocalURLAddress := Trim(FormattedName);
   LocalURLAddress := ReplaceStr(LocalURLAddress,' ','+');
   LocalURLAddress := ReplaceStr(LocalURLAddress,#13,',');

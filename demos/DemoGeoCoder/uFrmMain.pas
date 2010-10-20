@@ -17,11 +17,12 @@ type
     edLat: TLabeledEdit;
     edLon: TLabeledEdit;
     GoogleMaps1: TGoogleMaps;
+    Timer1: TTimer;
     procedure edSearchChange(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
   private
-    { Private declarations }
-  public
-    { Public declarations }
+    Ad:TAddressRec;
+    ChangeDateTime:TDateTime;
   end;
 
 var
@@ -29,30 +30,32 @@ var
 
 implementation
 
+uses DateUtils;
+
 {$R *.dfm}
 
 procedure TfrmMain.edSearchChange(Sender: TObject);
-var
-  Req:TGeocoderRequest;
-  Ad:TAddressRec;
 begin
-  Ad.Init;
-  Ad.FormattedName := edSearch.Text;
-  Ad.GeoCode;
-  edFound.Text := Ad.FormattedName;
-  edLat.Text := FloatToSTr(Ad.Lat);
-  edLon.Text := FloatToSTr(Ad.Lon);
+  Ad.GeoCode(edSearch.Text);
 
-  GoogleMaps1.SetCenter(Ad.Lat, Ad.Lon);
-  {
-  Req.Address := Edit1.Text;
-  TGeoCoder.GeoCode(Req,procedure(Results:Array of TGeoCoderResult;Status:TGeocoderStatus)
-  begin
-    Edit2.Text := IntToStr(ord(Status));
-    Edit3.Text := Results[0].address_components[0].long_name;
-  end
-  );}
+  edFound.Text := Ad.FormattedName;
+  edLat.Text   := FloatToSTr(Ad.Lat);
+  edLon.Text   := FloatToSTr(Ad.Lon);
+
+  ChangeDateTime := Now;
 end;
 
+procedure TfrmMain.Timer1Timer(Sender: TObject);
+const
+  MinMapUpdateDelay=500; // milliseconds
+begin
+  // JScript.dll doesn't like your fast typing :)
+  // so let's limit map movement to twice per second
+  if MilliSecondsBetween(Now,ChangeDateTime)>MinMapUpdateDelay then
+  begin
+    if edSearch.Text<>'' then
+      GoogleMaps1.SetCenter(Ad.Lat, Ad.Lon);
+  end;
+end;
 
 end.
