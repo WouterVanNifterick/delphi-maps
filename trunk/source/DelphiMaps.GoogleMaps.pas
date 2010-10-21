@@ -462,7 +462,8 @@ begin
   TWinControl(FBrowser).Parent := Self;
   FBrowser.Align := alClient;
   FBrowser.Show;
-  JsVarName := Name;
+//  JsVarName := Name;
+  JsVarName := 'map';
   Init;
 end;
 
@@ -493,6 +494,7 @@ end;
 
 function TGoogleMaps.AddOverlay(aOverlay:TGOverlay):Integer;
 begin
+  aOverLay.GoogleMaps := self;
   Result := FOverlays.Add(aOverlay);
   ExecJavaScript('var '+aOverlay.JsVarName + '=' + aOverlay.ToJavaScript+ ';');
   ExecJavaScript(JsVarName+'.addOverlay('+aOverlay.JsVarName+')');
@@ -508,7 +510,7 @@ end;
 procedure TGoogleMaps.Loaded;
 begin
   inherited;
-  JsVarName := Name;
+  JsVarName := 'map';
 end;
 
 procedure TGoogleMaps.Navigate(const URL: String);
@@ -547,7 +549,7 @@ begin
   DecimalSeparator := '.';
   FLatLngCenter.Lat := Lat;
   FLatLngCenter.Lng := Lng;
-  ExecJavaScript(Format('map'+'.'+Operation+'(new google.maps.LatLng(%g,%g));',[Lat,Lng]));
+  ExecJavaScript(Format(jsVarName+'.'+Operation+'(new google.maps.LatLng(%g,%g));',[Lat,Lng]));
 end;
 
 procedure TGoogleMaps.SetLatLngCenter(const Value: TGLatLng);

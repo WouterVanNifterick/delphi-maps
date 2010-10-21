@@ -34,6 +34,7 @@ object frmMain: TfrmMain
     Align = alRight
     Indent = 19
     TabOrder = 0
+    GoogleMaps = GoogleMaps1
   end
   object GoogleMaps1: TGoogleMaps
     Left = 0
@@ -73,14 +74,23 @@ object frmMain: TfrmMain
       TabOrder = 1
       OnChange = ComboBox1Change
     end
+    object Button1: TButton
+      Left = 435
+      Top = 1
+      Width = 75
+      Height = 25
+      Caption = 'Button1'
+      TabOrder = 2
+      OnClick = Button1Click
+    end
     object LinkLabel1: TLinkLabel
       AlignWithMargins = True
-      Left = 438
+      Left = 513
       Top = 4
       Width = 83
       Height = 17
       Caption = '<a href="xxx">Open in browser</a>'
-      TabOrder = 2
+      TabOrder = 3
       UseVisualStyle = True
     end
   end

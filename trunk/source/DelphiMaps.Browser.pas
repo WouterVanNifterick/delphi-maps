@@ -121,7 +121,8 @@ implementation
 uses
   Windows,
   SysUtils,
-  ActiveX;
+  ActiveX,
+  Dialogs;
 
 
 function ColorToHtml(DColor:TColor):string;
@@ -159,7 +160,8 @@ begin
     try
       (Document as IHTMLDocument2).parentWindow.execScript(aScript, 'JavaScript');
     except
-      //
+      on e:Exception do
+        ShowMessage(e.Message);
     end;
 end;
 
