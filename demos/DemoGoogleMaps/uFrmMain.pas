@@ -27,10 +27,12 @@ type
     FlowPanel1: TFlowPanel;
     Edit1: TEdit;
     ComboBox1: TComboBox;
+    Button1: TButton;
     LinkLabel1: TLinkLabel;
     procedure FormCreate(Sender: TObject);
     procedure ComboBox1Change(Sender: TObject);
     procedure Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure Button1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -43,6 +45,23 @@ var
 implementation
 
 {$R *.dfm}
+
+procedure TfrmMain.Button1Click(Sender: TObject);
+var
+  Poly:TGPolygon;
+begin
+  Poly := TGPolygon.Create;
+  poly.Color := clRed;
+  poly.WeightPx := 4;
+  Poly.AddPoint( TGLatLng.Create(52.3,5.3) );
+  Poly.AddPoint( TGLatLng.Create(52.2,5.2) );
+  Poly.AddPoint( TGLatLng.Create(52.1,5.3) );
+  Poly.AddPoint( TGLatLng.Create(52.0,5.4) );
+  Poly.AddPoint( TGLatLng.Create(52.1,5.5) );
+  Poly.AddPoint( TGLatLng.Create(52.2,5.6) );
+  Poly.AddPoint( TGLatLng.Create(52.3,5.5) );
+  GoogleMaps1.AddPolygon(Poly);
+end;
 
 procedure TfrmMain.ComboBox1Change(Sender: TObject);
 begin
@@ -67,12 +86,9 @@ procedure TfrmMain.FormCreate(Sender: TObject);
 var S:String;
 begin
   for S in cGoogleMapTypeStr do
-  begin
     ComboBox1.Items.Add(S);
 
-//    if ComboBox1.Items.Count=Ord( GoogleMaps1.MapType ) then
-//      ComboBox1.ItemIndex := ComboBox1.Items.Count-1;
-  end;
+  ComboBox1.ItemIndex := 0;
 end;
 
 end.
