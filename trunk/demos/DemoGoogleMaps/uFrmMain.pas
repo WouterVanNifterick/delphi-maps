@@ -27,12 +27,15 @@ type
     FlowPanel1: TFlowPanel;
     Edit1: TEdit;
     ComboBox1: TComboBox;
-    Button1: TButton;
     LinkLabel1: TLinkLabel;
+    pnlLeft: TPanel;
+    Button1: TButton;
+    Button2: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ComboBox1Change(Sender: TObject);
     procedure Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -48,19 +51,48 @@ implementation
 
 procedure TfrmMain.Button1Click(Sender: TObject);
 var
-  Poly:TGPolygon;
+  LPolygon:TGPolyLine;
 begin
-  Poly := TGPolygon.Create;
-  poly.Color := clRed;
-  poly.WeightPx := 4;
-  Poly.AddPoint( TGLatLng.Create(52.3,5.3) );
-  Poly.AddPoint( TGLatLng.Create(52.2,5.2) );
-  Poly.AddPoint( TGLatLng.Create(52.1,5.3) );
-  Poly.AddPoint( TGLatLng.Create(52.0,5.4) );
-  Poly.AddPoint( TGLatLng.Create(52.1,5.5) );
-  Poly.AddPoint( TGLatLng.Create(52.2,5.6) );
-  Poly.AddPoint( TGLatLng.Create(52.3,5.5) );
-  GoogleMaps1.AddPolygon(Poly);
+  LPolygon := TGPolyLine.Create;
+  LPolygon.StrokeColor   := clRed;
+  LPolygon.StrokeWeight  := 4;
+  LPolygon.StrokeOpacity := 0.7;
+  LPolygon.AddPoint( TGLatLng.Create(52.3,5.3) );
+  LPolygon.AddPoint( TGLatLng.Create(52.2,5.2) );
+  LPolygon.AddPoint( TGLatLng.Create(52.1,5.3) );
+  LPolygon.AddPoint( TGLatLng.Create(52.0,5.4) );
+  LPolygon.AddPoint( TGLatLng.Create(52.1,5.5) );
+  LPolygon.AddPoint( TGLatLng.Create(52.2,5.6) );
+  LPolygon.AddPoint( TGLatLng.Create(52.3,5.5) );
+  LPolygon.Map := GoogleMaps1;
+
+  // don't free Poly here. It will be destroyed by GoogleMaps1
+end;
+
+procedure TfrmMain.Button2Click(Sender: TObject);
+var
+  SouthWest,NorthEast : TGLatLng;
+  Bounds : TGLatLngBounds;
+  latSpan,lngSpan:Double;
+  Location:TGLatLng;
+  Marker:TGMarker;
+  i:Integer;
+begin
+  SouthWest := TGLatLng.Create(-31.203405,125.244141);
+  NorthEast := TGLatLng.Create(-25.363882,131.044922);
+  Bounds    := TGLatLngBounds.Create(SouthWest,NorthEast);
+  GoogleMaps1.FitBounds(Bounds);
+
+  lngSpan := NorthEast.lng - SouthWest.lng;
+  latSpan := NorthEast.lat - SouthWest.lat;
+
+  Randomize;
+  for i := 0 to 4 do
+  begin
+    Location := TGLatLng.Create(SouthWest.lat + latSpan * Random,
+                                southWest.lng + lngSpan * random);
+    Marker := TGMarker.Create(Location, GoogleMaps1);
+  end;
 end;
 
 procedure TfrmMain.ComboBox1Change(Sender: TObject);

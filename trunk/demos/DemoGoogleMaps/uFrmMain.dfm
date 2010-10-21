@@ -37,13 +37,15 @@ object frmMain: TfrmMain
     GoogleMaps = GoogleMaps1
   end
   object GoogleMaps1: TGoogleMaps
-    Left = 0
+    Left = 121
     Top = 29
-    Width = 393
+    Width = 272
     Height = 292
-    JsVarName = 'GoogleMaps1'
+    JsVarName = 'map'
     Align = alClient
     MapType = MT_ROADMAP
+    ExplicitLeft = 0
+    ExplicitWidth = 393
   end
   object FlowPanel1: TFlowPanel
     Left = 0
@@ -74,24 +76,52 @@ object frmMain: TfrmMain
       TabOrder = 1
       OnChange = ComboBox1Change
     end
-    object Button1: TButton
-      Left = 435
-      Top = 1
-      Width = 75
-      Height = 25
-      Caption = 'Button1'
-      TabOrder = 2
-      OnClick = Button1Click
-    end
     object LinkLabel1: TLinkLabel
       AlignWithMargins = True
-      Left = 513
+      Left = 438
       Top = 4
       Width = 83
       Height = 17
       Caption = '<a href="xxx">Open in browser</a>'
-      TabOrder = 3
+      TabOrder = 2
       UseVisualStyle = True
+    end
+  end
+  object pnlLeft: TPanel
+    Left = 0
+    Top = 29
+    Width = 121
+    Height = 292
+    Align = alLeft
+    TabOrder = 3
+    ExplicitLeft = -6
+    ExplicitTop = 31
+    object Button1: TButton
+      AlignWithMargins = True
+      Left = 4
+      Top = 4
+      Width = 113
+      Height = 25
+      Align = alTop
+      Caption = 'Test1'
+      TabOrder = 0
+      OnClick = Button1Click
+      ExplicitLeft = 46
+      ExplicitTop = 1
+      ExplicitWidth = 75
+    end
+    object Button2: TButton
+      AlignWithMargins = True
+      Left = 4
+      Top = 35
+      Width = 113
+      Height = 25
+      Align = alTop
+      Caption = 'Test2'
+      TabOrder = 1
+      OnClick = Button2Click
+      ExplicitLeft = 2
+      ExplicitTop = 84
     end
   end
 end

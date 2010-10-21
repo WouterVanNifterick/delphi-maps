@@ -29,7 +29,6 @@ object frmMain: TfrmMain
     Height = 392
     JsVarName = 'StreetView1'
     Align = alClient
-    ExplicitWidth = 619
   end
   object FlowPanel1: TFlowPanel
     Left = 0
@@ -39,7 +38,6 @@ object frmMain: TfrmMain
     Align = alTop
     AutoSize = True
     TabOrder = 1
-    ExplicitWidth = 743
     object Label1: TLabel
       AlignWithMargins = True
       Left = 4
