@@ -161,7 +161,7 @@ begin
       (Document as IHTMLDocument2).parentWindow.execScript(aScript, 'JavaScript');
     except
       on e:Exception do
-        ShowMessage(e.Message);
+        ShowMessage('Error: "'+e.Message + #13#10#13#10 + 'Script:'#13#10+aScript);
     end;
 end;
 

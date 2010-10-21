@@ -62,8 +62,12 @@ type
   end;
 
 
+  TGEvent = class(TJsClassWrapper)
+
+  end;
+
   // marker class
-  GMarkerOptions=record
+  TGMarkerOptions=record
     icon          : GIcon;    // Chooses the Icon for this class. If not specified, G_DEFAULT_ICON is used. (Since 2.50)
     dragCrossMove : Boolean;  // When dragging markers normally, the marker floats up and away from the cursor. Setting this value to true keeps the marker underneath the cursor, and moves the cross downwards instead. The default value for this option is false. (Since 2.63)
     title         : String;   // This string will appear as tooltip on the marker, i.e. it will work just as the title attribute on HTML elements. (Since 2.50)
@@ -176,11 +180,11 @@ type
   TGOverlay = class(TJsClassWrapper, IGHidable)
   strict private
     FID: Integer;
-    FGoogleMaps: TGoogleMaps;
+    FMap: TGoogleMaps;
     FName: String;
     FJsVarName: String;
     procedure SetID(const Value: Integer);
-    procedure SetGoogleMaps(const Value: TGoogleMaps);
+    procedure SetMap(const Value: TGoogleMaps);
     procedure SetName(const Value: String);
     function GetJsVarName: String;
     procedure SetJsVarName(const Value: String);
@@ -193,7 +197,7 @@ type
     property ID: Integer read FID write SetID;
     function ToJavaScript: String; override; abstract;
     property JsVarName: String read GetJsVarName write SetJsVarName;
-    property GoogleMaps: TGoogleMaps read FGoogleMaps write SetGoogleMaps;
+    property Map: TGoogleMaps read FMap write SetMap;
     property Name: String read FName write SetName;
     function JsClassName: string; override;
   end;
@@ -208,7 +212,7 @@ type
   published
     constructor Create;
     destructor Destroy; override;
-    function Add(aGOverlay: TGOverlay): Integer;
+    function Add(var aGOverlay: TGOverlay): Integer;
     procedure Clear; override;
     function ToString: String; override;
   end;
@@ -234,17 +238,20 @@ type
   // can be dragged, can show a popup, can have custom colors and icon
   TGMarker=class(TGOverlay,IJsClassWrapper,IGHidable)
   strict private
-    FCenter: TGLatLng;
+    FPosition: TGLatLng;
     FDraggingEnabled: Boolean;
     procedure setLatLng(const Value: TGLatLng);
     procedure SetDraggingEnabled(const Value: Boolean);
+  private
+    FTitle: String;
+    procedure SetTitle(const Value: String);
   public
     function supportsHide: Boolean;override;
   published
     function JsClassName:String;override;
-    constructor Create(const aCenter:TGLatLng);
+    constructor Create(const aPosition:TGLatLng; aMap:TGoogleMaps; const aTitle:String='');
     destructor Destroy;override;
-    property Center:TGLatLng read FCenter write setLatLng;
+    property Position:TGLatLng read FPosition write setLatLng;
     property DraggingEnabled:Boolean read FDraggingEnabled write SetDraggingEnabled;
     function ToJavaScript:String;override;
    { TODO 3 -oWouter : implement all marker methods and events }
@@ -271,6 +278,7 @@ type
     procedure draggingEnabled() : Boolean; // Returns true if the marker is currently enabled for the user to drag on the map.
     procedure setImage(url) : none; // Requests the image specified by the url to be set as the foreground image for this marker. Note that neither the print image nor the shadow image are adjusted. Therefore this method is primarily intended to implement highlighting or dimming effects, rather than drastic changes in marker's appearances. (Since 2.75)
 }
+    property Title:String read FTitle write SetTitle;
 
   end;
 
@@ -301,19 +309,19 @@ type
   TGPolygon=class(TGOverlay,IJsClassWrapper,IGHidable)
   private
     FCoordinates:Array of TGLatLng;
-    FOpacity: double;
-    FWeightPx: integer;
-    FColor: TColor;
+    FStrokeOpacity: double;
+    FStrokeWeight: double;
+    FStrokeColor: TColor;
     FSimplified: TGPolygon;
     FIsDirty: Boolean;
     procedure SetColor(const Value: TColor);
     procedure SetOpacity(const Value: double);
-    procedure SetWeightPx(const Value: integer);
+    procedure SetWeightPx(const Value: Double);
     function GetCount: Integer;
     procedure SetSimplified(const Value: TGPolygon);
     function GetSimplified: TGPolygon;
   public
-    constructor Create(const aCoordinates: array of TGLatLng);overload;
+    constructor Create(const aPath: array of TGLatLng;aStrokeColor:TColor=clBlue;aStrokeOpacity:Double=1.0;aStrokeWeight:Double=2);overload;
     constructor Create(const aPoints:Array of TPointFloat2D);overload;
     function supportsHide: Boolean;override;
   published
@@ -321,20 +329,19 @@ type
     procedure Clear;
     function ToJavaScript:String;override;
     function AddPoint(const aGLatLng:TGLatLng):integer;
-    property Color:TColor read FColor write SetColor;
-    property WeightPx:integer read FWeightPx write SetWeightPx;
-    property Opacity:double read FOpacity write SetOpacity;// number between 0 and 1
+    function AddPoints(const aGLatLngAr: Array of TGLatLng):integer;
+    property StrokeColor:TColor read FStrokeColor write SetColor;
+    property StrokeWeight:double read FStrokeWeight write SetWeightPx;
+    property StrokeOpacity:double read FStrokeOpacity write SetOpacity;// number between 0 and 1
     property Count:Integer read GetCount;
     destructor Destroy;override;
     property IsDirty:Boolean read FIsDirty write FIsDirty;
     property Simplified:TGPolygon read GetSimplified write SetSimplified;
     function getSimplifiedVersion(Tolerance:Double=DEFAULT_SIMPLIFY_TOLERANCE):TGPolygon;
-    class function PolyTypeStr: String;virtual;
   end;
 
   TGPolyLine = class(TGPolygon, IJsClassWrapper, IGHidable)
   published
-    class function PolyTypeStr: String; override;
     function JsClassName: String; override;
   end;
 
@@ -363,13 +370,6 @@ type
     FMapType: TGoogleMapType;
     FLatLngCenter: TGLatLng;
     FJsVarName: String;
-    FOpacity: Double;
-
-    Dummy:Boolean;
-    // hide in IDE by making dummy properties
-    property HelpContext:Boolean read Dummy;
-    property HelpKeyword:Boolean read Dummy;
-    property HelpType:Boolean read Dummy;
 
     procedure Navigate(const URL:String);
     procedure SetOverlays(const Value: TOverlayList);
@@ -377,14 +377,12 @@ type
     procedure SetLatLngCenter(const Value: TGLatLng);
     function GetLatLngCenter: TGLatLng;
     procedure SetMapType(AMapType:TGoogleMapType);
-    procedure SetOpacity(const Value: Double);
     procedure SetJsVarName(const Value: String);
   protected
     procedure Loaded; override;
   public
     constructor Create(AOwner: TComponent);override;
     destructor Destroy;override;
-    procedure SetCenter(Lat,Lng,Alt:Double;doPan:Boolean=false);overload;
     procedure SetCenter(Lat,Lng:Double;doPan:Boolean=false);overload;
     procedure SetCenter(LatLng:TGLatLng;doPan:Boolean=false);overload;
     procedure HandleOnResize(Sender:TObject);
@@ -397,7 +395,6 @@ type
     property Overlays     : TOverlayList read FOverlays write SetOverlays;
     property LatLngCenter : TGLatLng read GetLatLngCenter write SetLatLngCenter;
     property MapType:TGoogleMapType read FMapType write SetMapType;
-    property Opacity:Double read FOpacity write SetOpacity;
     property JsVarName:String read FJsVarName write SetJsVarName;
     procedure AddControl(ControlType:TGoogleMapControlType);
     function AddMarker(Lat,Lon:Double):TGMarker;
@@ -409,6 +406,7 @@ type
     procedure ShowAddress(const Street,City,State,Country:String);
     procedure openInfoWindow(aLatlng : TGLatLng; aHTML:String);
     procedure closeInfoWindow;
+    procedure FitBounds(const aBounds:TGLatLngBounds);
     procedure ExecJavaScript(const aScript:String);
     procedure WebBrowserDocumentComplete(ASender: TObject; const pDisp: IDispatch; var URL: OleVariant);
     property Align;
@@ -480,6 +478,11 @@ begin
   Browser.ExecJavaScript(aScript);
 end;
 
+procedure TGoogleMaps.FitBounds(const aBounds: TGLatLngBounds);
+begin
+  ExecJavaScript(jsVarName+'.fitBounds('+aBounds.ToJavaScript+')');
+end;
+
 procedure TGoogleMaps.AddControl(ControlType: TGoogleMapControlType);
 begin
   ExecJavaScript(Format('addControl(%d);',[Integer(ControlType)]));
@@ -488,16 +491,20 @@ end;
 function TGoogleMaps.addMarker(Lat, Lon: Double):TGMarker;
 begin
 //  JavaScript(format('createMarker(%g,%g)',[Lat,Lon]));
-  Result  := TGMarker.Create(TGLatLng.Create(Lat,Lon));
+  Result  := TGMarker.Create(TGLatLng.Create(Lat,Lon), Self);
   AddOverlay(Result);
 end;
 
 function TGoogleMaps.AddOverlay(aOverlay:TGOverlay):Integer;
 begin
-  aOverLay.GoogleMaps := self;
+  aOverLay.Map := self;
   Result := FOverlays.Add(aOverlay);
   ExecJavaScript('var '+aOverlay.JsVarName + '=' + aOverlay.ToJavaScript+ ';');
-  ExecJavaScript(JsVarName+'.addOverlay('+aOverlay.JsVarName+')');
+//  V2 way to do it:
+//  ExecJavaScript(JsVarName+'.addOverlay('+aOverlay.JsVarName+')');
+
+//  V3 way to do it:
+  ExecJavaScript(aOverlay.JsVarName+'.setMap('+JsVarName+');');
 end;
 
 procedure TGoogleMaps.AddPolygon(GPolygon: TGPolygon);
@@ -519,21 +526,6 @@ begin
 end;
 
 
-procedure TGoogleMaps.SetCenter(Lat, Lng, Alt: Double;doPan:Boolean=False);
-var
-  Operation:String;
-begin
-  if (Lat=FLatLngCenter.Lat) and (FLatLngCenter.Lng = Lng)  then
-    Exit;
-
-  DecimalSeparator := '.';
-  FLatLngCenter.Lat := Lat;
-  FLatLngCenter.Lng := Lng;
-
-  ExecJavaScript(Format(JsVarName+'.setCenter(new google.maps.LatLng(%g,%g), %g);',[Lat,Lng,Alt]));
-
-end;
-
 procedure TGoogleMaps.SetCenter(Lat, Lng: Double;doPan:Boolean=False);
 var
   Operation:String;
@@ -546,7 +538,7 @@ begin
   else
     Operation := 'setCenter';
 
-  DecimalSeparator := '.';
+  FormatSettings.DecimalSeparator := '.';
   FLatLngCenter.Lat := Lat;
   FLatLngCenter.Lng := Lng;
   ExecJavaScript(Format(jsVarName+'.'+Operation+'(new google.maps.LatLng(%g,%g));',[Lat,Lng]));
@@ -565,13 +557,6 @@ begin
   ExecJavaScript(jsVarName+'.setMapTypeId(google.maps.MapTypeId.'+cGoogleMapTypeStr[FMapType]+');');
 end;
 
-procedure TGoogleMaps.SetOpacity(const Value: Double);
-begin
-  FOpacity := Value;
-  FormatSettings.DecimalSeparator := '.';
-  ExecJavaScript(Format('Set_Background_Opacity(%g);',[ FOpacity ]));
-
-end;
 
 procedure TGoogleMaps.SetOverlays(const Value: TOverlayList);
 begin
@@ -666,7 +651,22 @@ end;
 
 function TGPolygon.JsClassName: String;
 begin
-  Result := 'GPolygon';
+  Result := 'google.maps.Polygon';
+end;
+
+function TGPolygon.AddPoints(const aGLatLngAr: array of TGLatLng): integer;
+var
+  LGLatLng: TGLatLng;
+  Index:Integer;
+begin
+  Index := Length(FCoordinates);
+  SetLength(FCoordinates,Length(FCoordinates)+Length(aGLatLngAr));
+  for LGLatLng in aGLatLngAr do
+  begin
+    FCoordinates[Index] := LGLatLng;
+    Inc(Index);
+  end;
+  Result := High(FCoordinates);
 end;
 
 procedure TGPolygon.Clear;
@@ -674,6 +674,7 @@ begin
   FreeAndNil(FSimplified);
   SetLength(FCoordinates,0);
 end;
+
 
 destructor TGPolygon.Destroy;
 var
@@ -685,22 +686,25 @@ begin
   inherited;
 end;
 
-constructor TGPolygon.Create(const ACoordinates: array of TGLatLng);
+constructor TGPolygon.Create(const aPath: array of TGLatLng;aStrokeColor:TColor=clBlue;aStrokeOpacity:Double=1.0;aStrokeWeight:Double=2);
 var
   I :integer;
 begin
-  Color := clYellow;
-  SetLength(FCoordinates,Length(ACoordinates));
+  FStrokeColor    := aStrokeColor;
+  FStrokeOpacity  := aStrokeOpacity;
+  FStrokeWeight   := aStrokeWeight;
 
-  for I := 0 to High(ACoordinates) do
-    FCoordinates[I] := ACoordinates[I];
+  SetLength(FCoordinates,Length(aPath));
+
+  for I := 0 to High(aPath) do
+    FCoordinates[I] := aPath[I];
 end;
 
 constructor TGPolygon.Create(const aPoints: array of TPointFloat2D);
 var
   I :integer;
 begin
-  Color := clYellow;
+  StrokeColor := clYellow;
   SetLength(FCoordinates,Length(APoints));
   for I := 0 to High(APoints) do
     FCoordinates[I] := TGLatLng.Create(APoints[I].Y,APoints[I].X);
@@ -746,20 +750,15 @@ begin
   Result := TGPolygon.Create(SimplifiedAr);
 end;
 
-class function TGPolygon.PolyTypeStr: String;
-begin
-  { TODO 3 -oWouter -cfix : wrong type used here for now}
-  Result := 'GPolyline';
-end;
 
 procedure TGPolygon.SetColor(const Value: TColor);
 begin
-  FColor := Value;
+  FStrokeColor := Value;
 end;
 
 procedure TGPolygon.SetOpacity(const Value: double);
 begin
-  FOpacity := Value;
+  FStrokeOpacity := Value;
 end;
 
 procedure TGPolygon.SetSimplified(const Value: TGPolygon);
@@ -767,9 +766,9 @@ begin
   FSimplified := Value;
 end;
 
-procedure TGPolygon.SetWeightPx(const Value: integer);
+procedure TGPolygon.SetWeightPx(const Value: Double);
 begin
-  FWeightPx := Value;
+  FStrokeWeight := Value;
 end;
 
 function TGPolygon.supportsHide: Boolean;
@@ -781,14 +780,15 @@ function TGPolygon.ToJavaScript: String;
 var
   I : Integer;
 begin
-  Result := ' new ' + PolyTypeStr + '(['#13#10;
+  Result := ' new ' + JsClassName + '({path:['#13#10;
   for I := 0 to High(FCoordinates) do
   begin
     Result := Result +  FCoordinates[I].ToJavaScript;
     if I<High(FCoordinates) then
       Result := Result + ','#13#10;
   end;
-	Result := Result + '], "'+ColorToHtml(Color)+'", 5, 1, "#ff0000", 0.2)'#13#10;
+  FormatSettings.DecimalSeparator := '.';
+	Result := Result + '], strokeColor:"'+ColorToHtml(StrokeColor)+'", strokeOpacity:'+FloatToStr(FStrokeOpacity)+', strokeWeight:'+FloatToStr(StrokeWeight)+'})'#13#10;
 end;
 
 { TGLatLng }
@@ -811,7 +811,7 @@ end;
 
 function TGLatLng.JsClassName: String;
 begin
-  Result := 'GLatLng';
+  Result := 'google.maps.LatLng';
 end;
 
 procedure TGLatLng.SetJsVarName(const Value: String);
@@ -822,7 +822,7 @@ end;
 function TGLatLng.ToJavaScript: String;
 begin
   FormatSettings.DecimalSeparator := '.';
-  Result := Format(' new GLatLng(%g,%g)',[ Lat, Lng ]);
+  Result := Format(' new '+jsClassName+'(%g,%g)',[ Lat, Lng ]);
 end;
 
 function TGLatLng.ToString: String;
@@ -834,35 +834,30 @@ end;
 
 function TGPolyLine.JsClassName: String;
 begin
-  Result := 'GPolyline';
-end;
-
-class function TGPolyLine.PolyTypeStr: String;
-begin
-  Result := 'GPolyline';
+  Result := 'google.maps.Polyline';
 end;
 
 { TMarker }
 
 destructor TGMarker.Destroy;
 begin
-  FreeAndNil(FCenter);
+  FreeAndNil(FPosition);
   inherited;
 end;
 
 function TGMarker.JsClassName: String;
 begin
-  Result := 'GMarker';
+  Result := 'google.maps.Marker';
 end;
 
 procedure TGMarker.openInfoWindow(aContent:String);
 begin
-  GoogleMaps.ExecJavaScript(JsVarName+'.openInfoWindow("'+aContent+'");');
+  Map.ExecJavaScript(JsVarName+'.openInfoWindow("'+aContent+'");');
 end;
 
 procedure TGMarker.openInfoWindowHtml(aContent:String);
 begin
-  GoogleMaps.ExecJavaScript(JsVarName+'.openInfoWindowHtml("'+aContent+'");');
+  Map.ExecJavaScript(JsVarName+'.openInfoWindowHtml("'+aContent+'");');
 end;
 
 procedure TGMarker.SetDraggingEnabled(const Value: Boolean);
@@ -870,15 +865,23 @@ begin
   FDraggingEnabled := Value;
 end;
 
-constructor TGMarker.Create(const aCenter: TGLatLng);
+constructor TGMarker.Create(const aPosition: TGLatLng; aMap:TGoogleMaps;const aTitle:String='');
 begin
-  Center := aCenter;
+  Position := aPosition;
+  FTitle := aTitle;
+  self.Map := aMap;
 end;
 
 
 procedure TGMarker.setLatLng(const Value: TGLatLng);
 begin
-  FCenter := Value;
+  FPosition := Value;
+end;
+
+procedure TGMarker.SetTitle(const Value: String);
+begin
+  FTitle := Value;
+  Map.ExecJavaScript(Format('%s.setTitle("%s");',[JsVarName,Value]));
 end;
 
 function TGMarker.SupportsHide: Boolean;
@@ -887,13 +890,28 @@ begin
 end;
 
 function TGMarker.ToJavaScript: String;
+var
+  FormatStr:String;
 begin
-  Result := 'new GMarker(' + Center.ToJavaScript + ', {icon: G_START_ICON, draggable: false})';
+  if FTitle='' then
+    FormatStr := ' new %s({Position:%s,map:%s,title:"%s"})'
+  else
+    FormatStr := ' new %s({Position:%s,map:%s})';
+
+  Result := Format(
+    FormatStr,
+    [
+      JsClassName,
+      Position.ToJavaScript,
+      Map.JsVarName,
+      FTitle
+     ]
+  );
 end;
 
 { TOverlayList }
 
-function TOverlayList.Add(aGOverlay: TGOverlay): Integer;
+function TOverlayList.Add(var aGOverlay: TGOverlay): Integer;
 begin
   aGOverlay.ID := AutoIncrementID;
   inc(AutoIncrementID);
@@ -956,22 +974,26 @@ procedure TGOverlay.hide;
 begin
   inherited;
   if supportsHide then
-    FGoogleMaps.ExecJavaScript(JsVarName + '.hide();');
+    FMap.ExecJavaScript(JsVarName + '.hide();');
 end;
 
 function TGOverlay.isHidden: Boolean;
 begin
-  Result := FGoogleMaps.Browser.GetJsValue(JsVarName + '.isHidden()');
+  Result := FMap.Browser.GetJsValue(JsVarName + '.isHidden()');
 end;
 
 function TGOverlay.JsClassName: string;
 begin
-  Result := 'GOverlay';
+  Result := 'google.maps.Overlay';
 end;
 
-procedure TGOverlay.SetGoogleMaps(const Value: TGoogleMaps);
+procedure TGOverlay.SetMap(const Value: TGoogleMaps);
 begin
-  FGoogleMaps := Value;
+  FMap := Value;
+
+  FMap.Overlays.Add(self);
+  FMap.ExecJavaScript('var '+JsVarName+' = '+Self.ToJavaScript+';');
+  FMap.ExecJavaScript(JsVarName+'.setMap('+FMap.JsVarName+');');
 end;
 
 procedure TGOverlay.SetID(const Value: Integer);
@@ -992,7 +1014,7 @@ end;
 
 procedure TGOverlay.show;
 begin
-  FGoogleMaps.ExecJavaScript(JsVarName + '.show();');
+  FMap.ExecJavaScript(JsVarName + '.show();');
 end;
 
 function TGOverlay.supportsHide: Boolean;
@@ -1046,7 +1068,7 @@ end;
 
 function TGBounds.JsClassName: String;
 begin
-  Result := 'GBounds';
+  Result := 'google.maps.Bounds';
 end;
 
 procedure TGBounds.SetJsVarName(const Value: String);
@@ -1056,6 +1078,7 @@ end;
 
 function TGBounds.ToJavaScript: String;
 begin
+  Result := ' new '+JsClassName + '()';
   // @@@ not implemented
 end;
 
@@ -1079,12 +1102,12 @@ end;
 
 procedure TGGeoXml.gotoDefaultViewport(Map: TGoogleMaps);
 begin
-  GoogleMaps.ExecJavaScript(JsVarName + '.gotoDefaultViewport('+ Map.JsVarName +');');
+  Map.ExecJavaScript(JsVarName + '.gotoDefaultViewport('+ Map.JsVarName +');');
 end;
 
 function TGGeoXml.JsClassName: String;
 begin
-  Result := 'GGeoXml';
+  Result := 'google.maps.GeoXml';
 end;
 
 procedure TGGeoXml.SetUrlOfXml(const Value: String);
@@ -1099,7 +1122,7 @@ end;
 
 function TGGeoXml.ToJavaScript: String;
 begin
-  GoogleMaps.ExecJavaScript('var '+JsVarName+' = new '+JsClassName+'("'+FUrlOfXml+'", function() { if ('+JsVarName+'.loadedCorrectly()) {'+JsVarName+'.gotoDefaultViewport('+GoogleMaps.JsVarName+');}})');
+  Map.ExecJavaScript('var '+JsVarName+' = new '+JsClassName+'("'+FUrlOfXml+'", function() { if ('+JsVarName+'.loadedCorrectly()) {'+JsVarName+'.gotoDefaultViewport('+Map.JsVarName+');}})');
   Result := JsVarName;
 end;
 
@@ -1166,7 +1189,8 @@ end;
 
 destructor TGLatLngBounds.Destroy;
 begin
-
+  FreeAndNil(FNorthEast);
+  FreeAndNil(FSouthWest);
   inherited;
 end;
 
@@ -1238,12 +1262,12 @@ end;
 
 function TGLatLngBounds.JsClassName: string;
 begin
-
+  Result := 'google.maps.LatLngBounds';
 end;
 
 procedure TGLatLngBounds.SetJsVarName(const aVarName: string);
 begin
-
+  JsVarName := aVarName;
 end;
 
 procedure TGLatLngBounds.setNorthEast(const Value: TGLatLng);
@@ -1258,7 +1282,7 @@ end;
 
 function TGLatLngBounds.ToJavaScript: string;
 begin
-
+  Result := ' new '+JsClassName + '('+ FSouthWest.ToJavaScript + ',' + FNorthEast.ToJavaScript + ')';
 end;
 
 function TGLatLngBounds.toSpan: TGLatLng;
@@ -1287,7 +1311,7 @@ end;
 
 function TGInfoWindow.JsClassName: String;
 begin
-  Result := 'GInfoWindow';
+  Result := 'google.maps.InfoWindow';
 end;
 
 procedure TGInfoWindow.Maximize;
@@ -1313,7 +1337,7 @@ end;
 
 function TGInfoWindow.ToJavaScript: String;
 begin
-  Result := GoogleMaps.JsVarName + '.getInfoWindowHtml();';
+  Result := Map.JsVarName + '.getInfoWindowHtml();';
 end;
 
 

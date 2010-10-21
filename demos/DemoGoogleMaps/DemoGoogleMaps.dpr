@@ -1,6 +1,7 @@
 program DemoGoogleMaps;
 
 uses
+  FastMM4,
   Forms,
   uFrmMain in 'uFrmMain.pas' {frmMain};
 
