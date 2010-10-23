@@ -31,8 +31,8 @@ object frmMain: TfrmMain
       Height = 422
       Align = alClient
       URL = 
-        'http://maps.google.com/maps/api/staticmap?sensor=false&center=&m' +
-        'aptype=roadMap&size=664x422&zoom=0'
+        'http://maps.google.com/maps/api/staticmap?sensor=false&center=0,' +
+        '0&maptype=roadMap&size=664x422&zoom=0'
       Zoom = 0
       MapType = ST_ROADMAP
       Format = mfPng
