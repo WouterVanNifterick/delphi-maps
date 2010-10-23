@@ -26,40 +26,47 @@ uses
 
 
 type
+  // class that extends TWebBrowser with methods to easily execute JavaScript,
+  // and to retrieve javascript variables and function results
   TBrowser=class(TWebBrowser)
   private
    procedure OnMouseOver;
+    function GetHtmlWindow2: IHTMLWindow2;
   public
     constructor Create(AOwner: TComponent); override;
   published
     procedure ExecJavaScript(const aScript:String);
+    procedure ExecJavaScriptFmt(const aScriptFormat:String;aParameters:Array of const);
     procedure WebBrowserDocumentComplete(ASender: TObject; const pDisp: IDispatch; var URL: OleVariant);
-    function GetJsValue(aJavaScript:String):OleVariant;
+    function Eval(aJavaScript:String):Variant;
+    property HtmlWindow2:IHTMLWindow2 read GetHtmlWindow2;
   end;
 
   TJsObjectProcedure = procedure of object;
+  TJsProcReference = reference to procedure;
 
   TJsEventObject = class(TInterfacedObject, IDispatch)
   private
     FOnEvent: TJsObjectProcedure;
+    FOnEventDo: TJsProcReference;
   protected
     function GetTypeInfoCount(out Count: Integer): HResult; stdcall;
     function GetTypeInfo(Index, LocaleID: Integer; out TypeInfo): HResult; stdcall;
     function GetIDsOfNames(const IID: TGUID; Names: Pointer; NameCount, LocaleID: Integer; DispIDs: Pointer): HResult; stdcall;
     function Invoke(DispID: Integer; const IID: TGUID; LocaleID: Integer; Flags: Word; var Params; VarResult, ExcepInfo, ArgErr: Pointer): HResult; stdcall;
   public
-    constructor Create(const OnEvent: TJsObjectProcedure) ;
+    constructor Create(const OnEvent: TJsObjectProcedure);overload;
+    constructor Create(const OnEvent: TJsProcReference);overload;
     property OnEvent: TJsObjectProcedure read FOnEvent write FOnEvent;
+    property OnEventDo: TJsProcReference read FOnEventDo write FOnEventDo;
   end;
 
-
-  IJsClassWrapper=interface(IInterface)
-    function JsClassName:String;
-
-    function GetJsVarName:String;
-    procedure SetJsVarName(const aVarName:String);
-    property JsVarName:String read GetJsVarName write SetJsVarName;
-    function ToJavaScript:String;
+  IJsClassWrapper = interface(IInterface)
+    function JsClassName: String;
+    function GetJsVarName: String;
+    procedure SetJsVarName(const aVarName: String);
+    property JsVarName: String read GetJsVarName write SetJsVarName;
+    function ToJavaScript: String;
   end;
 
   TJsClassWrapper=class abstract(TInterfacedObject,IJsClassWrapper)
@@ -73,6 +80,7 @@ type
     function JsClassName:String;virtual;abstract;
     function ToJavaScript:String;virtual;abstract;
     property JsVarName:String read GetJsVarName write SetJsVarName;
+    function Clone:TJsClassWrapper;virtual;abstract;
   end;
 
 
@@ -96,6 +104,7 @@ type
   published
     property JsVarName:String read FJsVarName write SetJsVarName;
     procedure ExecJavaScript(const aScript:String);
+    procedure ExecJavaScriptFmt(const aScriptFormat:String;aParameters:Array of const);
     procedure WebBrowserDocumentComplete(ASender: TObject; const pDisp: IDispatch; var URL: OleVariant);
     property Align;
     property OnClick;
@@ -122,6 +131,7 @@ uses
   Windows,
   SysUtils,
   ActiveX,
+  StrUtils,
   Dialogs;
 
 
@@ -156,73 +166,46 @@ begin
   if (ReadyState <> READYSTATE_COMPLETE) then
     exit;
 
-  if Assigned(Document) then
-    try
-      (Document as IHTMLDocument2).parentWindow.execScript(aScript, 'JavaScript');
-    except
-      on e:Exception do
-        ShowMessage('Error: "'+e.Message + #13#10#13#10 + 'Script:'#13#10+aScript);
-    end;
+  if not Assigned(Document) then
+    exit;
+
+  try
+    (Document as IHTMLDocument2).parentWindow.execScript(aScript, 'JavaScript');
+  except
+    on e:Exception do
+      ShowMessage('Error: "'+e.Message + #13#10#13#10 + 'Script:'#13#10+aScript);
+  end;
 end;
 
 
-function TBrowser.GetJsValue(aJavaScript: String): OleVariant;
-  function GetFormByNumber(document: IHTMLDocument2;
-      formNumber: integer): IHTMLFormElement;
-  var
-    forms: IHTMLElementCollection;
-  begin
-    forms := document.Forms as IHTMLElementCollection;
-    if formNumber < forms.Length then
-      result := forms.Item(formNumber,'') as IHTMLFormElement
-    else
-      result := nil;
-  end;
-
-  function GetFieldValue(fromForm: IHTMLFormElement; const fieldName: string): string;
-  var
-    field: IHTMLElement;
-    inputField: IHTMLInputElement;
-    selectField: IHTMLSelectElement;
-    textField: IHTMLTextAreaElement;
-  begin
-    field := fromForm.Item(fieldName,'') as IHTMLElement;
-    if not Assigned(field) then
-      result := ''
-    else
-    begin
-      if field.tagName = 'INPUT' then
-      begin
-        inputField := field as IHTMLInputElement;
-        result := inputField.value
-      end
-      else if field.tagName = 'SELECT' then
-      begin
-        selectField := field as IHTMLSelectElement;
-        result := selectField.value
-      end
-      else if field.tagName = 'TEXTAREA' then
-      begin
-        textField := field as IHTMLTextAreaElement;
-        result := textField.value;
-      end;
-    end
-  end;
-
-
-var
-  document: IHTMLDocument2;
-  theForm: IHTMLFormElement;
-
+procedure TBrowser.ExecJavaScriptFmt(const aScriptFormat: String; aParameters: array of const);
 begin
-  ExecJavaScript('ReturnValue('+aJavaScript+')');
-
-  document := Document as IHTMLDocument2;
-  theForm := GetFormByNumber(Document as IHTMLDocument2,0);
-  Result := GetFieldValue(theForm,'retVal');
+  ExecJavaScript(Format(aScriptFormat,aParameters));
 end;
 
+function TBrowser.GetHtmlWindow2: IHTMLWindow2;
+begin
+  Result := (Document as IHTMLDocument2).parentWindow
+end;
 
+function TBrowser.Eval(aJavaScript: String): Variant;
+var
+  Window: IHTMLWindow2;
+  Doc : IHTMLDocument;
+  TempId: String;
+begin
+  if (ReadyState <> READYSTATE_COMPLETE) then
+    exit;
+
+  if not Assigned(Document) then
+    exit;
+
+  Window := (Document as IHTMLDocument2).parentWindow;
+  aJavaScript := ReplaceStr(aJavaScript, '"', '\"');
+  ExecJavaScriptFmt('window.status=eval("%s");', [aJavaScript]);
+  Result := Window.status;
+  Window.status := '';
+end;
 
 procedure TBrowser.OnMouseOver;
 var
@@ -248,6 +231,7 @@ begin
 end;
 
 
+
 procedure TBrowser.WebBrowserDocumentComplete(ASender: TObject; const pDisp: IDispatch; var URL: OleVariant);
 begin
   if Assigned(Document) then
@@ -257,12 +241,18 @@ begin
   end;
 end;
 
-{ TEventObject }
+{ TJsEventObject }
 
 constructor TJsEventObject.Create(const OnEvent: TJsObjectProcedure) ;
 begin
    inherited Create;
    FOnEvent := OnEvent;
+end;
+
+constructor TJsEventObject.Create(const OnEvent: TJsProcReference);
+begin
+   inherited Create;
+   FOnEventDo := OnEvent;
 end;
 
 function TJsEventObject.GetIDsOfNames(const IID: TGUID; Names: Pointer; NameCount, LocaleID: Integer; DispIDs: Pointer): HResult;
@@ -283,12 +273,16 @@ end;
 
 function TJsEventObject.Invoke(DispID: Integer; const IID: TGUID; LocaleID: Integer; Flags: Word; var Params; VarResult, ExcepInfo, ArgErr: Pointer): HResult;
 begin
-   if (DispID = DISPID_VALUE) then
-   begin
-     if Assigned(FOnEvent) then FOnEvent;
-     Result := S_OK;
-   end
-   else Result := E_NOTIMPL;
+  if (DispID = DISPID_VALUE) then
+  begin
+    if Assigned(FOnEvent) then
+      FOnEvent;
+    if Assigned(FOnEventDo) then
+      FOnEventDo;
+    Result := S_OK;
+  end
+  else
+    Result := E_NOTIMPL;
 end;
 
 
@@ -342,6 +336,11 @@ begin
   Browser.ExecJavaScript(aScript);
 end;
 
+
+procedure TBrowserControl.ExecJavaScriptFmt(const aScriptFormat: String; aParameters: array of const);
+begin
+  ExecJavaScript(Format(aScriptFormat,aParameters));
+end;
 
 class function TBrowserControl.GetHTMLResourceName: String;
 begin

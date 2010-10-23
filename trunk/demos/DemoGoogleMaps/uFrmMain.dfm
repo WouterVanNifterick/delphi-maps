@@ -44,8 +44,6 @@ object frmMain: TfrmMain
     JsVarName = 'map'
     Align = alClient
     MapType = MT_ROADMAP
-    ExplicitLeft = 0
-    ExplicitWidth = 393
   end
   object FlowPanel1: TFlowPanel
     Left = 0
@@ -94,34 +92,81 @@ object frmMain: TfrmMain
     Height = 292
     Align = alLeft
     TabOrder = 3
-    ExplicitLeft = -6
-    ExplicitTop = 31
-    object Button1: TButton
+    object btnTestPolygon1: TButton
       AlignWithMargins = True
       Left = 4
       Top = 4
       Width = 113
       Height = 25
       Align = alTop
-      Caption = 'Test1'
+      Caption = 'Polygon'
       TabOrder = 0
-      OnClick = Button1Click
-      ExplicitLeft = 46
-      ExplicitTop = 1
-      ExplicitWidth = 75
+      OnClick = btnTestPolygon1Click
+      ExplicitLeft = 2
+      ExplicitTop = -13
     end
-    object Button2: TButton
+    object btnTestMarkers: TButton
+      AlignWithMargins = True
+      Left = 4
+      Top = 97
+      Width = 113
+      Height = 25
+      Align = alTop
+      Caption = 'Markers 2'
+      TabOrder = 1
+      OnClick = btnTestMarkersClick
+      ExplicitLeft = 2
+    end
+    object btnMarker: TButton
+      AlignWithMargins = True
+      Left = 4
+      Top = 66
+      Width = 113
+      Height = 25
+      Align = alTop
+      Caption = 'Markers 1'
+      TabOrder = 2
+      OnClick = btnMarkerClick
+      ExplicitTop = 35
+    end
+    object btnTestPolyGon2: TButton
       AlignWithMargins = True
       Left = 4
       Top = 35
       Width = 113
       Height = 25
       Align = alTop
-      Caption = 'Test2'
-      TabOrder = 1
-      OnClick = Button2Click
+      Caption = 'Polygon'
+      TabOrder = 3
+      OnClick = btnTestPolyGon2Click
       ExplicitLeft = 2
-      ExplicitTop = 84
+    end
+    object Button1: TButton
+      AlignWithMargins = True
+      Left = 4
+      Top = 128
+      Width = 113
+      Height = 25
+      Align = alTop
+      Caption = 'Eval'
+      TabOrder = 4
+      OnClick = Button1Click
+      ExplicitLeft = 48
+      ExplicitTop = 152
+      ExplicitWidth = 75
+    end
+    object btnGetBounds: TButton
+      AlignWithMargins = True
+      Left = 4
+      Top = 159
+      Width = 113
+      Height = 25
+      Align = alTop
+      Caption = 'Get Bounds'
+      TabOrder = 5
+      OnClick = btnGetBoundsClick
+      ExplicitLeft = 2
+      ExplicitTop = 200
     end
   end
 end
