@@ -38,7 +38,7 @@ type
     procedure ExecJavaScript(const aScript:String);
     procedure ExecJavaScriptFmt(const aScriptFormat:String;aParameters:Array of const);
     procedure WebBrowserDocumentComplete(ASender: TObject; const pDisp: IDispatch; var URL: OleVariant);
-    function Eval(aJavaScript:String):Variant;
+    function Eval(aJavaScript:String;Default:Variant):Variant;
     property HtmlWindow2:IHTMLWindow2 read GetHtmlWindow2;
   end;
 
@@ -70,13 +70,13 @@ type
   end;
 
   TJsClassWrapper=class abstract(TInterfacedObject,IJsClassWrapper)
-  private
+  protected
 //    FId:String;
     FJsVarName:String;
     function GetJsVarName:String;
     procedure SetJsVarName(const aVarName:String);
   public
-    constructor Create;
+    constructor Create; virtual; abstract;
     function JsClassName:String;virtual;abstract;
     function ToJavaScript:String;virtual;abstract;
     property JsVarName:String read GetJsVarName write SetJsVarName;
@@ -94,7 +94,6 @@ type
     class function GetHTMLResourceName:String;virtual;
     procedure SaveHtml(const aFileName:string);virtual;
     procedure Loaded; override;
-    procedure Navigate(const URL:String);
   public
     constructor Create(AOwner: TComponent);override;
     destructor Destroy;override;
@@ -188,17 +187,19 @@ begin
   Result := (Document as IHTMLDocument2).parentWindow
 end;
 
-function TBrowser.Eval(aJavaScript: String): Variant;
+function TBrowser.Eval(aJavaScript: String;Default:Variant): Variant;
 var
   Window: IHTMLWindow2;
-  Doc : IHTMLDocument;
-  TempId: String;
 begin
+  Result := Default;
+  if (csDesigning in ComponentState)then
+    Exit;
+
   if (ReadyState <> READYSTATE_COMPLETE) then
-    exit;
+    Exit;
 
   if not Assigned(Document) then
-    exit;
+    Exit;
 
   Window := (Document as IHTMLDocument2).parentWindow;
   aJavaScript := ReplaceStr(aJavaScript, '"', '\"');
@@ -288,11 +289,6 @@ end;
 
 { TJsClassWrapper }
 
-constructor TJsClassWrapper.Create;
-begin
-  FJsVarName := '';
-end;
-
 function TJsClassWrapper.GetJsVarName: String;
 begin
   Result := FJsVarName;
@@ -352,12 +348,6 @@ begin
   inherited;
   JsVarName := Name;
 end;
-
-procedure TBrowserControl.Navigate(const URL: String);
-begin
-  Browser.Navigate(URL);
-end;
-
 
 procedure TBrowserControl.WebBrowserDocumentComplete(ASender: TObject;
   const pDisp: IDispatch; var URL: OleVariant);

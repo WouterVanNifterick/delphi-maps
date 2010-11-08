@@ -28,6 +28,7 @@ uses
   Forms,
   StrUtils,
   Graphics,
+  DelphiMaps.Browser.Event,
   RegularExpressions,
   DelphiMaps.Browser,
   DelphiMaps.DouglasPeuckers
@@ -38,7 +39,6 @@ const
   WGS84_MULT_FACT    = 100000; // multiply lat/lon values by this value in order to fit them into integers
   DEFAULT_SIMPLIFY_TOLERANCE = 0.5;
 
-{$R DelphiMaps.GoogleMaps_html.res}
 
 type
   TPointFloat2D = DelphiMaps.DouglasPeuckers.TPointFloat2D;
@@ -58,13 +58,22 @@ type
 
   IGHidable=interface(IInterface)
     procedure hide;                         // Hides the object if the overlay is both currently visible and the overlay's supportsHide() method returns true. Note that this method will trigger the respective visibilitychanged event for each child overlay that fires that event (e.g. GMarker.visibilitychanged, GGroundOverlay.visibilitychanged, etc.). If no overlays are currently visible that return supportsHide() as true, this method has no effect. (Since 2.87)
-    function  isHidden           : Boolean; // Returns true if the GGeoXml object is currently hidden, as changed by the GGeoXml.hide() method. Otherwise returns false. (Since 2.87)
+    function  isHidden           : Boolean; // Returns true if the object is currently hidden, as changed by the .hide() method. Otherwise returns false.
     procedure show;                         // Shows the child overlays created by the GGeoXml object, if they are currently hidden. Note that this method will trigger the respective visibilitychanged event for each child overlay that fires that event (e.g. GMarker.visibilitychanged, GGroundOverlay.visibilitychanged). (Since 2.87)
     function  supportsHide       : Boolean; //
   end;
 
   TGSize = class(TJsClassWrapper)
-
+  private
+    FWidth: Double;
+    FHeight: Double;
+    procedure SetHeight(const Value: Double);
+    procedure SetWidth(const Value: Double);
+  public
+    property Width:Double read FWidth write SetWidth;
+    property Height:Double read FHeight write SetHeight;
+    constructor Create(width,height:Double; widthUnit:string='';heightUnit:string='');reintroduce;
+    function Equals(aSize: TGSize): Boolean; reintroduce;
   end;
 
 
@@ -108,11 +117,8 @@ type
   private
     FLat,
     FLng:Double;
-    FJsVarName: String;
-    function GetJsVarName: String;
-    procedure SetJsVarName(const Value: String);
   published
-    constructor Create(aLat,aLng:Double);
+    constructor Create(aLat,aLng:Double);reintroduce;
     property Lat:Double read FLat write FLat;
     property Lng:Double read FLng write FLng;
     function ToJavaScript:String;override;
@@ -120,12 +126,10 @@ type
     function Clone:TGLatLng;reintroduce;
     function ToString:String;override;
     function JsClassName:String;override;
-    property JsVarName:String read GetJsVarName write SetJsVarName;
   end;
 
   TGBounds=class(TJsClassWrapper)
   private
-    FJsVarName: String;
     FMinX, FMinY, FMaxX, FMaxY:Double;
     FMin,FMax,FMid:TGLatLng;
     function GetMax: TGLatLng;
@@ -149,6 +153,8 @@ type
     function ToJavaScript:String;override;
   end;
 
+  // A LatLngBounds  instance represents a rectangle in geographical coordinates,
+  // including one that crosses the 180 degrees longitudinal meridian.
   TGLatLngBounds=class(TJsClassWrapper)
   private
     FNorthEast:TGLatLng;
@@ -160,16 +166,17 @@ type
   public
     function JsClassName: string;override;
     function ToJavaScript: string;override;
-    constructor Create(sw,ne:TGLatLng);overload;
-    constructor Create(const aJs:String);overload;
-    constructor Create(aEast,aNorth,aWest,aSouth:Double);overload;
+    constructor Create(sw,ne:TGLatLng);reintroduce;overload;
+    constructor Create(const aJs:String);reintroduce;overload;
+    constructor Create(aEast,aNorth,aWest,aSouth:Double);reintroduce;overload;
   published
     destructor Destroy;override;
-    function contains(aLatLng:TGLatLng):Boolean; deprecated; // Returns true iff the geographical coordinates of the point lie within this rectangle. (Deprecated since 2.88)
+    function contains(aLatLng:TGLatLng):Boolean; deprecated; //  	Returns true if the given lat/lng is in this bounds.
     function containsLatLng(aLatLng:TGLatLng):Boolean; // Returns true iff the geographical coordinates of the point lie within this rectangle. (Since 2.88)
     function intersects(aGLatLngBounds:TGLatLngBounds):Boolean;
     function containsBounds(aGLatLngBounds:TGLatLngBounds):Boolean;
-    procedure extend(aLatLng:TGLatLng); // Enlarges this rectangle such that it contains the given point. In longitude direction, it is enlarged in the smaller of the two possible ways. If both are equal, it is enlarged at the eastern boundary.
+    procedure Extend(aLatLng:TGLatLng); // Enlarges this rectangle such that it contains the given point. In longitude direction, it is enlarged in the smaller of the two possible ways. If both are equal, it is enlarged at the eastern boundary.
+    function Union(other:TGLatLngBounds):TGLatLngBounds; // Extends this bounds to contain the union of this and the given bounds.
 
     function toSpan()       :	TGLatLng; //	Returns a GLatLng whose coordinates represent the size of this rectangle.
     function isFullLat()    :	Boolean ; //	Returns true if this rectangle extends from the south pole to the north pole.
@@ -196,7 +203,6 @@ type
     FID: Integer;
     FMap: TGoogleMaps;
     FName: String;
-    FJsVarName: String;
     procedure SetID(const Value: Integer);
     procedure SetMap(const Value: TGoogleMaps);
     procedure SetName(const Value: String);
@@ -239,7 +245,7 @@ type
   public
     property HTML: String read FHTML write SetHTML;
     function JsClassName: String; override;
-    constructor Create(const aCenter: TGLatLng);
+    constructor Create(const aCenter: TGLatLng);reintroduce;
     destructor Destroy; override;
     function ToJavaScript: String; override;
     function supportsHide: Boolean; override;
@@ -263,7 +269,7 @@ type
     function supportsHide: Boolean;override;
   published
     function JsClassName:String;override;
-    constructor Create(const aPosition:TGLatLng; aMap:TGoogleMaps=nil; const aTitle:String=''; const aIcon:String='');
+    constructor Create(const aPosition:TGLatLng; aMap:TGoogleMaps=nil; const aTitle:String=''; const aIcon:String='');reintroduce;
     destructor Destroy;override;
     property Position:TGLatLng read FPosition write setLatLng;
     property DraggingEnabled:Boolean read FDraggingEnabled write SetDraggingEnabled;
@@ -310,7 +316,7 @@ type
     procedure SetOrigin(const Value: TGPoint);
     procedure SetSize(const Value: TGSize);
   public
-    constructor Create(const aIcon:string;aSize:TGSize;aOrigin,aAnchor:TGPoint);
+    constructor Create(const aIcon:string;aSize:TGSize;aOrigin,aAnchor:TGPoint);reintroduce;
     function ToJavaScript: string; override;
   published
     property Icon:String read FIcon write SetIcon;
@@ -319,6 +325,10 @@ type
     property Anchor:TGPoint read FAnchor write SetAnchor;
   end;
 
+  TGProjection=record
+    class function fromLatLngToPoint(latLng:TGLatLng; point:TGPoint=nil):TGPoint; static; // Translates from the LatLng cylinder to the Point plane. This interface specifies a function which implements translation from given LatLng values to world coordinates on the map projection. The Maps API calls this method when it needs to plot locations on screen. Projection objects must implement this method.
+    class function fromPointToLatLng(pixel:TGPoint; nowrap:boolean=false):TGLatLng; static; // This interface specifies a function which implements translation from world coordinates on a map projection to LatLng values. The Maps API calls this method when it needs to translate actions on screen to positions on the map. Projection objects must implement this method.
+  end;
 
   TGGeoXml = class(TGOverlay, IJsClassWrapper, IGHidable)
   private
@@ -336,7 +346,7 @@ type
     function supportsHide: Boolean; override; // Always returns true. (Since 2.87)
 
     function JsClassName: String; override;
-    constructor Create(const aUrlOfXml: String);
+    constructor Create(const aUrlOfXml: String);reintroduce;
     destructor Destroy; override;
     property UrlOfXml: String read FUrlOfXml write SetUrlOfXml;
     function ToJavaScript: String; override;
@@ -359,9 +369,9 @@ type
     procedure SetSimplified(const Value: TGPolygon);
     function GetSimplified: TGPolygon;
   public
-    constructor Create;reintroduce;overload;
-    constructor Create(const aPath: array of TGLatLng;aStrokeColor:TColor=clBlue;aStrokeOpacity:Double=1.0;aStrokeWeight:Double=2);overload;
-    constructor Create(const aPoints:Array of TPointFloat2D);overload;
+    constructor Create;overload;override;
+    constructor Create(const aPath: array of TGLatLng;aStrokeColor:TColor=clBlue;aStrokeOpacity:Double=1.0;aStrokeWeight:Double=2);reintroduce;overload;
+    constructor Create(const aPoints:Array of TPointFloat2D);reintroduce;overload;
     function supportsHide: Boolean;override;
     function Clone: TGPolygon; reintroduce;
   published
@@ -400,57 +410,79 @@ type
     property minZoom: Integer read FminZoom write SetminZoom; // The lowest zoom level at which this information applies.
     property bounds: TGLatLngBounds read Fbounds write Setbounds; // The region to which this information applies.
     property text: String read Ftext write Settext; // The text of the copyright message.
-    constructor Create(aId: Integer; aBounds: TGLatLngBounds; aMinZoom: Integer; aText: String);
+    constructor Create(aId: Integer; aBounds: TGLatLngBounds; aMinZoom: Integer; aText: String);reintroduce;
   end;
 
-  TGoogleMaps=class(TBrowserControl)
+  TGControl = string;
+
+  TMapTypeRegistry = class
+
+  end;
+
+  TGoogleMaps=class(TBrowserControl, IJsClassWrapper)
   strict private
     FBrowser:TBrowser;
     FOverlays: TOverlayList;
     FMapType: TGoogleMapType;
     FLatLngCenter: TGLatLng;
     FBounds : TGLatLngBounds;
-    FJsVarName: String;
-
-    procedure Navigate(const URL:String);
-    procedure SetOverlays(const Value: TOverlayList);
+    FJsVarName : String;
+    FZoom:Integer;
+    FControls: TList<TGControl>;
+    FEvent:TEvent;
     procedure Init;
-    procedure SetLatLngCenter(const Value: TGLatLng);
-    function GetLatLngCenter: TGLatLng;
-    procedure SetMapType(AMapType:TGoogleMapType);
-    procedure SetJsVarName(const Value: String);
 
+    procedure SetOverlays(const Value: TOverlayList);
+    function GetCenter: TGLatLng;
+    procedure SetMapType(AMapType:TGoogleMapType);
+    function GetMapType: TGoogleMapType;
+  private
+    FOnBoundsChanged: TNotifyEvent;
+    FOnCenterChanged: TNotifyEvent;
+    FOnDblClick: TNotifyEvent;
+    FOnClick: TNotifyEvent;
+    FOnMouseMove: TNotifyEvent;
+    procedure SetOnBoundsChanged(const Value: TNotifyEvent);
+    procedure SetOnCenterChanged(const Value: TNotifyEvent);
+    procedure SetOnClick(const Value: TNotifyEvent);
+    procedure SetOnDblClick(const Value: TNotifyEvent);
+    procedure SetOnMouseMove(const Value: TNotifyEvent);
   protected
     function AddOverlay(aOverlay:TGOverlay):Integer;
     procedure Loaded; override;
+    procedure HandleOnResize(Sender:TObject);
   public
     constructor Create(AOwner: TComponent);override;
     destructor Destroy;override;
+    procedure SetCenter(const Value: TGLatLng);overload;
     procedure SetCenter(Lat,Lng:Double;doPan:Boolean=false);overload;
-    procedure SetCenter(LatLng:TGLatLng;doPan:Boolean=false);overload;
-    procedure HandleOnResize(Sender:TObject);
 
+    function GetZoom: Integer;
+    procedure SetZoom(const Value: Integer);
 
     procedure CheckResize;
+    function JsClassName: string;
+    function GetJsVarName: string;
+    procedure SetJsVarName(const aVarName: string);
+    function ToJavaScript: string;
     property Browser : TBrowser read FBrowser write FBrowser;
+    property Center : TGLatLng read GetCenter write SetCenter;
 
   published
     property Overlays     : TOverlayList read FOverlays write SetOverlays;
-    property LatLngCenter : TGLatLng read GetLatLngCenter write SetLatLngCenter;
-    property MapType:TGoogleMapType read FMapType write SetMapType;
-    property JsVarName:String read FJsVarName write SetJsVarName;
+    property Controls     : TList<TGControl> read FControls write FControls;
+
+    property MapType:TGoogleMapType read GetMapType write SetMapType;
     procedure AddControl(ControlType:TGoogleMapControlType);
-    function AddMarker(Lat,Lon:Double):TGMarker;
-    procedure AddPolygon(GPolygon:TGPolygon);
     procedure RemoveOverlay(aOverlay:TGOverlay);
     procedure RemoveOverlayByIndex(Index:Integer);
     procedure ClearOverlays;
-    procedure ShowAddress(const Street,City,State,Country:String);
-    procedure openInfoWindow(aLatlng : TGLatLng; aHTML:String);
-    procedure closeInfoWindow;
+    procedure PanBy(X,Y:Double);
+    procedure panToBounds(latLngBounds:TGLatLngBounds);
     procedure FitBounds(const aBounds:TGLatLngBounds);
     function GetBounds:TGLatLngBounds;
     property Bounds : TGLatLngBounds read GetBounds write FitBounds;
+    property Zoom:Integer read GetZoom write SetZoom;
     procedure ExecJavaScript(const aScript:String);
     procedure WebBrowserDocumentComplete(ASender: TObject; const pDisp: IDispatch; var URL: OleVariant);
     property Align;
@@ -466,10 +498,18 @@ type
     property BoundsRect;
 //    property ShowHint;
     property Visible;
+    property Event:TEvent read FEvent write FEvent;
+    property OnBoundsChanged:TNotifyEvent read FOnBoundsChanged write SetOnBoundsChanged;
+    property OnCenterChanged:TNotifyEvent read FOnCenterChanged write SetOnCenterChanged;
+    property OnClick:TNotifyEvent read FOnClick write SetOnClick;
+    property OnDblClick:TNotifyEvent read FOnDblClick write SetOnDblClick;
+    property OnMouseMove:TNotifyEvent read FOnMouseMove write SetOnMouseMove;
     class function GetHTMLResourceName:String;override;
   end;
 
 {$R DelphiMaps.GoogleMaps.dcr}
+{$R DelphiMapsBrowserExternal.tlb}
+{$R DelphiMaps.GoogleMaps_html.res}
 
 implementation
 
@@ -486,9 +526,23 @@ begin
   LHtmlFileName := IncludeTrailingPathDelimiter(ExtractFilePath(Application.ExeName))+GoogleMapsFileName;
   SaveHtml(LHtmlFileName);
   if FileExists(LHtmlFileName) then
-    Navigate('file://' + LHtmlFileName);
+    FBrowser.Navigate('file://' + LHtmlFileName);
 
   FOverlays := TOverlayList.Create;
+//  FEvent := TEvent.Create(FBrowser);
+
+//  FEvent.AddListener(self, 'bounds_changed', procedure() begin if Assigned(FOnBoundsChanged) then FOnBoundsChanged(Self) end, '');
+//  FEvent.AddListener(self, 'center_changed', procedure() begin if Assigned(FOnCenterChanged) then FOnCenterChanged(Self) end, '');
+//  FEvent.AddListener(self, 'click'         , procedure() begin if Assigned(FOnClick)         then FOnClick(Self) end, '');
+//  FEvent.AddListener(self, 'dblclick'      , procedure() begin if Assigned(FOnDblClick)      then FOnDblClick(Self) end, '');
+//  FEvent.AddListener(self, 'mousemove'     , procedure() begin if Assigned(FOnMouseMove)     then FOnMouseMove(Self) end, '');
+
+
+end;
+
+function TGoogleMaps.JsClassName: string;
+begin
+  Result := 'google.maps.Map';
 end;
 
 constructor TGoogleMaps.Create(AOwner: TComponent);
@@ -497,7 +551,6 @@ begin
 
   Color := 0;
   FLatLngCenter := TGLatLng.Create(52,5);
-
   FBrowser := TBrowser.Create(self);
   FBrowser.Resizable := False;
   FBrowser.Silent := True;
@@ -516,6 +569,7 @@ begin
   FreeAndNil(FOverlays);
   FreeAndNil(FLatLngCenter);
   FreeAndNil(FBounds);
+//  FreeAndNil(FEvent);
   inherited;
 end;
 
@@ -536,12 +590,6 @@ begin
   ExecJavaScript(Format('addControl(%d);',[Integer(ControlType)]));
 end;
 
-function TGoogleMaps.addMarker(Lat, Lon: Double):TGMarker;
-begin
-//  JavaScript(format('createMarker(%g,%g)',[Lat,Lon]));
-  Result  := TGMarker.Create(TGLatLng.Create(Lat,Lon), Self);
-  AddOverlay(Result);
-end;
 
 function TGoogleMaps.AddOverlay(aOverlay:TGOverlay):Integer;
 begin
@@ -558,12 +606,6 @@ begin
 
 end;
 
-procedure TGoogleMaps.AddPolygon(GPolygon: TGPolygon);
-begin
-  AddOverlay(GPolygon);
-end;
-
-
 
 procedure TGoogleMaps.Loaded;
 begin
@@ -571,11 +613,30 @@ begin
   JsVarName := 'map';
 end;
 
-procedure TGoogleMaps.Navigate(const URL: String);
+
+procedure TGoogleMaps.PanBy(X, Y: Double);
 begin
-  Browser.Navigate(URL);
+  // Changes the center of the map by the given distance in pixels.
+  // If the distance is less than both the width and height of the map,
+  // the transition will be smoothly animated.
+  // Note that the map coordinate system increases from west to east
+  // for x values) and north to south (for y values).
+  ExecJavaScriptFmt('%s.panBy(%g,%g);',[JsVarName,X,Y]);
 end;
 
+procedure TGoogleMaps.panToBounds(latLngBounds: TGLatLngBounds);
+begin
+  // Pans the map by the minimum amount necessary to contain the
+  // given LatLngBounds. It makes no guarantee where on the map the
+  // bounds will be, except that as much of the bounds as possible
+  // will be visible. The bounds will be positioned inside the area
+  // bounded by the map type and navigation controls, if they are
+  // present on the map. If the bounds is larger than the map,
+  // the map will be shifted to include the northwest corner of the
+  // bounds. If the change in the map's position is less than both the
+  // width and height of the map, the transition will be smoothly animated.
+  ExecJavaScriptFmt('%s.panToBounds(%s);',[JsVarName,latLngBounds.ToJavaScript]);
+end;
 
 procedure TGoogleMaps.SetCenter(Lat, Lng: Double;doPan:Boolean=False);
 var
@@ -595,7 +656,7 @@ begin
   ExecJavaScript(Format('%s.%s(%s);',[jsVarName, Operation, FLatLngCenter.ToJavaScript]));
 end;
 
-procedure TGoogleMaps.SetLatLngCenter(const Value: TGLatLng);
+procedure TGoogleMaps.SetCenter(const Value: TGLatLng);
 begin
   FLatLngCenter := Value;
   SetCenter(FLatLngCenter.Lat,FLatLngCenter.Lng);
@@ -609,14 +670,48 @@ begin
 end;
 
 
+procedure TGoogleMaps.SetOnBoundsChanged(const Value: TNotifyEvent);
+begin
+  FOnBoundsChanged := Value;
+end;
+
+procedure TGoogleMaps.SetOnCenterChanged(const Value: TNotifyEvent);
+begin
+  FOnCenterChanged := Value;
+end;
+
+procedure TGoogleMaps.SetOnClick(const Value: TNotifyEvent);
+begin
+  FOnClick := Value;
+end;
+
+procedure TGoogleMaps.SetOnDblClick(const Value: TNotifyEvent);
+begin
+  FOnDblClick := Value;
+end;
+
+procedure TGoogleMaps.SetOnMouseMove(const Value: TNotifyEvent);
+begin
+  FOnMouseMove := Value;
+end;
+
 procedure TGoogleMaps.SetOverlays(const Value: TOverlayList);
 begin
   FOverlays := Value;
 end;
 
-procedure TGoogleMaps.ShowAddress(const Street, City, State, Country: String);
+procedure TGoogleMaps.SetZoom(const Value: Integer);
 begin
-  ExecJavaScript(Format('showAddress("%s, %s, %s, %s");',[Street,City,State,Country]));
+  if FZoom=Value then
+    Exit;
+
+  FZoom := Value;
+  ExecJavaScriptFmt('%s.setzoom(%d);',[jsVarName,Value]);
+end;
+
+function TGoogleMaps.ToJavaScript: string;
+begin
+  result := ' new ' + JsClassName + '()';
 end;
 
 procedure TGoogleMaps.WebBrowserDocumentComplete(ASender: TObject;
@@ -626,10 +721,6 @@ begin
 end;
 
 
-procedure TGoogleMaps.openInfoWindow(aLatlng: TGLatLng; aHTML: String);
-begin
-  ExecJavaScript(JsVarName + '.openInfoWindow('+aLatlng.ToJavaScript+', "'+aHTML+'")');
-end;
 
 procedure TGoogleMaps.RemoveOverlay(aOverlay: TGOverlay);
 begin
@@ -650,9 +741,12 @@ var
   Js : String;
 begin
   // read values from the browser.. the user might have scrolled in the meanwhile
-  Js := Browser.Eval(JsVarName+'.getBounds()');
-  FreeAndNil(FBounds);
-  FBounds := TGLatLngBounds.Create(Js);
+  Js := Browser.Eval(JsVarName+'.getBounds()','');
+  if Js<>'' then
+  begin
+    FreeAndNil(FBounds);
+    FBounds := TGLatLngBounds.Create(Js);
+  end;
   Result := FBounds;
 end;
 
@@ -661,16 +755,49 @@ begin
   Result := 'GOOGLE_MAPS_HTML';
 end;
 
-function TGoogleMaps.GetLatLngCenter: TGLatLng;
+function TGoogleMaps.GetJsVarName: string;
+begin
+  Result := JsVarName;
+end;
+
+function TGoogleMaps.GetMapType: TGoogleMapType;
+var
+  Js : String;
+  LGoogleMapType:TGoogleMapType;
+begin
+  // read values from the browser.. the user might have scrolled in the meanwhile
+  Js := Browser.Eval(JsVarName+'.getMapTypeId()','');
+  if Js<>'' then
+  begin
+    FreeAndNil(FBounds);
+    for LGoogleMapType := Low(cGoogleMapTypeStr) to High(cGoogleMapTypeStr)  do
+    begin
+      if Js=cGoogleMapTypeStr[LGoogleMapType] then
+      begin
+        FMapType := LGoogleMapType;
+        Break;
+      end;
+    end;
+  end;
+  Result := FMapType;
+end;
+
+function TGoogleMaps.GetCenter: TGLatLng;
 begin
 //  FLatLngCenter.Lat := GetJsValue(JsVarName+'.getCenter().lat()');
 //  FLatLngCenter.Lng := GetJsValue(JsVarName+'.getCenter().lng()');
   Result            := FLatLngCenter;
 end;
 
-procedure TGoogleMaps.SetCenter(LatLng: TGLatLng; doPan: Boolean);
+function TGoogleMaps.GetZoom: Integer;
 begin
-  SetCenter(LatLng.Lat,LatLng.Lng,DoPan);
+  FZoom := FBrowser.Eval(JsVarName + '.getZoom()',FZoom);
+  Result := FZoom;
+end;
+
+procedure TGoogleMaps.SetJsVarName(const aVarName: string);
+begin
+  FJsVarName := aVarName;
 end;
 
 procedure TGoogleMaps.CheckResize;
@@ -689,15 +816,6 @@ begin
   ExecJavaScript(JsVarName+'.clearOverlays();');
 end;
 
-procedure TGoogleMaps.closeInfoWindow;
-begin
-  ExecJavaScript(JsVarName+'.closeInfoWindow();');
-end;
-
-procedure TGoogleMaps.SetJsVarName(const Value: String);
-begin
-  FJsVarName := Value;
-end;
 
 { TGPolygon }
 
@@ -892,19 +1010,10 @@ begin
   Result := (AGLatLng.Lat=Lat) and (AGLatLng.Lng=Lng);
 end;
 
-function TGLatLng.GetJsVarName: String;
-begin
-  Result := FJsVarName;
-end;
 
 function TGLatLng.JsClassName: String;
 begin
   Result := 'google.maps.LatLng';
-end;
-
-procedure TGLatLng.SetJsVarName(const Value: String);
-begin
-  FJsVarName := Value;
 end;
 
 function TGLatLng.ToJavaScript: String;
@@ -1055,7 +1164,7 @@ end;
 
 function TGOverlay.isHidden: Boolean;
 begin
-  Result := FMap.Browser.Eval(JsVarName + '.isHidden()');
+  Result := FMap.Browser.Eval(JsVarName + '.isHidden()',False);
 end;
 
 function TGOverlay.JsClassName: string;
@@ -1308,17 +1417,7 @@ var
   SL: TStringList;
   LJs : String;
 begin
-  FreeAndNil(FNorthEast);
-  FreeAndNil(FSouthWest);
-  {$IFDEF VxER220}
-  FormatSettings.DecimalSeparator := '.';
-  with TRegEx.Matches(aJs,'[0-9|.]*') do
-  begin
-    FNorthEast := TGLatLng.Create( StrToFloat(Item[0].Value), StrToFloat(Item[1].Value) );
-    FSouthWest := TGLatLng.Create( StrToFloat(Item[2].Value), StrToFloat(Item[3].Value) );
-  end;
-  {$ELSE}
-  DecimalSeparator := '.';
+  {$IFDEF VER220}FormatSettings.{$ENDIF}DecimalSeparator := '.';
   LJs := aJs;
   LJs := ReplaceStr(LJs,'(','');
   LJs := ReplaceStr(LJs,')','');
@@ -1328,13 +1427,20 @@ begin
     SL.Delimiter := ',';
     SL.StrictDelimiter := True;
     SL.DelimitedText := LJs;
-    FNorthEast := TGLatLng.Create( StrToFloat(SL[0]), StrToFloat(SL[1]) );
-    FSouthWest := TGLatLng.Create( StrToFloat(SL[2]), StrToFloat(SL[3]) );
+    if SL.Count=4 then
+    begin
+      FreeAndNil(FNorthEast);
+      FreeAndNil(FSouthWest);
+      FNorthEast := TGLatLng.Create( StrToFloat(SL[0]), StrToFloat(SL[1]) );
+      FSouthWest := TGLatLng.Create( StrToFloat(SL[2]), StrToFloat(SL[3]) );
+    end
+    else
+    begin
+
+    end;
   finally
     SL.Free;
   end;
-  {$ENDIF}
-
 end;
 
 function TGLatLngBounds.getCenter: TGLatLng;
@@ -1421,6 +1527,15 @@ end;
 function TGLatLngBounds.ToString: String;
 begin
   Result := Format('((%g,%g),(%g,%g))',[ self.FNorthEast.FLat, self.FNorthEast.FLng, self.FSouthWest.FLat, self.FSouthWest.FLng ]);
+end;
+
+function TGLatLngBounds.Union(other: TGLatLngBounds): TGLatLngBounds;
+begin
+  Result := TGLatLngBounds.Create(
+    TGLatLng.Create(Min(SouthWest.FLat,Other.SouthWest.Lat),
+                    Min(SouthWest.FLng,Other.SouthWest.FLng)),
+    TGLatLng.Create(Max(NorthEast.FLat,Other.NorthEast.Lat),
+                    Max(NorthEast.FLng,Other.NorthEast.FLng)));
 end;
 
 { TGInfoWindow }
@@ -1544,6 +1659,42 @@ end;
 function TGMarkerimage.ToJavaScript: string;
 begin
   Result := Format(' new %s(%s,%s,%s,%s)',[jsClassName, FIcon, FSize.ToJavaScript, FOrigin.ToJavaScript, FAnchor.ToJavaScript ]);
+end;
+
+{ TGSize }
+
+constructor TGSize.Create(width, height: Double; widthUnit, heightUnit: string);
+begin
+  //
+end;
+
+function TGSize.Equals(aSize: TGSize): Boolean;
+begin
+  Result := (aSize.FWidth=FWidth) and (aSize.FHeight=FHeight)
+end;
+
+procedure TGSize.SetHeight(const Value: Double);
+begin
+  FHeight := Value;
+end;
+
+procedure TGSize.SetWidth(const Value: Double);
+begin
+  FWidth := Value;
+end;
+
+{ TGProjection }
+
+class function TGProjection.fromLatLngToPoint(latLng: TGLatLng;
+  point: TGPoint): TGPoint;
+begin
+  // not yet implemented
+end;
+
+class function TGProjection.fromPointToLatLng(pixel: TGPoint;
+  nowrap: boolean): TGLatLng;
+begin
+  // not yet implemented
 end;
 
 end.
