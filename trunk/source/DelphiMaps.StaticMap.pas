@@ -446,7 +446,7 @@ begin
   Result := Result + '|';
   for I := 0 to Count - 1 do
   begin
-    Result := Result + Items[I].Point.ToString + '|';
+    Result := Result + Items[I].Position.ToString + '|';
   end;
   Result := Copy(Result, 1, Length(Result) - 1);
 end;
