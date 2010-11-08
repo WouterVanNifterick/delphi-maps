@@ -87,7 +87,7 @@ var
   LocalURL,
   LocalURLAddress:String;
   SL:TStringList;
-  Accuracy:Integer;
+//  Accuracy:Integer;
   Download:TDownLoadURL;
 const
   GeoCodingBaseURL='http://maps.google.com/maps/geo?q=';
@@ -118,7 +118,8 @@ begin
       if SL.Count<4 then
         raise EGeoCoding.Create('Geocoding: unexpected number of fields in result');
 
-      Accuracy := StrToInt(SL[1]);
+//      Accuracy := StrToInt(SL[1]);
+      FormatSettings.DecimalSeparator := '.';
       Result := TGLatLng.Create(StrToFloat(SL[2]),StrToFloat(SL[3]));
     finally
       FreeAndNil(SL);
