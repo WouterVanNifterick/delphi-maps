@@ -13,11 +13,11 @@ type
   TLocation = class
   private
     FText: String;
-    FPoint: TGPoint;
+    FPosition: TGLatLng;
     FOnChange: TNotifyEvent;
     FLocationType: TLocationType;
     procedure SetText(const Value: String);
-    procedure SetPoint(const Value: TGPoint);
+    procedure SetPosition(const Value: TGLatLng);
     procedure SetOnChange(const Value: TNotifyEvent);
     procedure SetLocationType(const Value: TLocationType);
     procedure DoOnChange;
@@ -25,11 +25,11 @@ type
     function ToString: String; override;
     constructor Create;overload;
     constructor Create(const aText: String); reintroduce; overload;
-    constructor Create(Point: TGPoint); reintroduce; overload;
+    constructor Create(aPosition: TGLatLng); reintroduce; overload;
   public
     property OnChange: TNotifyEvent read FOnChange write SetOnChange;
     property Text: String read FText write SetText;
-    property Point: TGPoint read FPoint write SetPoint;
+    property Position: TGLatLng read FPosition write SetPosition;
     property LocationType: TLocationType read FLocationType write SetLocationType default ltText;
   end;
 
@@ -47,19 +47,18 @@ begin
   FText := aText;
 end;
 
-constructor TLocation.Create(Point: TGPoint);
+constructor TLocation.Create(aPosition: TGLatLng);
 begin
   Create;
-  FreeAndNil(FPoint);
-  FPoint := Point;
+  FreeAndNil(FPosition);
+  FPosition := aPosition;
   FLocationType := ltCoordinates;
 end;
 
 constructor TLocation.Create;
 begin
   inherited;
-  FPoint := TGPoint.Create;
-
+  FPosition := TGLatLng.Create(0,0);
 end;
 
 procedure TLocation.DoOnChange;
@@ -82,12 +81,12 @@ begin
   FOnChange := Value;
 end;
 
-procedure TLocation.SetPoint(const Value: TGPoint);
+procedure TLocation.SetPosition(const Value: TGLatLng);
 begin
-  if Value.Equals(FPoint) and (FLocationType = ltCoordinates) then
+  if Value.Equals(FPosition) and (FLocationType = ltCoordinates) then
     Exit;
 
-  FPoint := Value;
+  FPosition := Value;
   FLocationType := ltCoordinates;
   DoOnChange;
 end;
@@ -106,13 +105,15 @@ function TLocation.ToString: String;
 begin
   Result := '';
 
-  if (FPoint = nil) or (FPoint.ToString = '') then
+  if (Text <> '') then
   begin
     LocationType := ltText;
     Exit(Text);
   end;
 
-  Exit(FPoint.ToString);
+  LocationType := ltCoordinates;
+  FormatSettings.DecimalSeparator := '.';
+  Exit(Format('%g,%g',[FPosition.Lat, FPosition.Lng]);
 end;
 
 end.
