@@ -107,11 +107,9 @@ procedure TStreetView.HandleOnCenterChange(Sender: TObject);
 begin
   {$IFDEF VER220}FormatSettings.{$ENDIF}DecimalSeparator := '.';
   case FCenter.LocationType of
-    ltCoordinates : ExecJavaScript(Format('%s.setPosition(new google.maps.LatLng(%g,%g));',[JsVarName,FCenter.Point.Lat,FCenter.Point.Lon]));
+    ltCoordinates : ExecJavaScript(Format('%s.setPosition(new google.maps.LatLng(%g,%g));',[JsVarName,FCenter.Position.Lat,FCenter.Position.Lng]));
     ltText        : ExecJavaScript(Format('%s.setPosition( AddressToLatLng("%s") );',[JsVarName,FCenter.Text]));
   end;
-
-
 end;
 
 procedure TStreetView.HandleOnPOVChange(Sender: TObject);
@@ -128,7 +126,7 @@ begin
   LHtmlFileName := TPath.GetTempPath+StrStreetViewFileName;
   SaveHtml(LHtmlFileName);
   if FileExists(LHtmlFileName) then
-    Navigate('file://' + LHtmlFileName);
+    Browser.Navigate('file://' + LHtmlFileName);
 end;
 
 procedure TStreetView.Resize;
@@ -143,7 +141,7 @@ begin
     Exit;
 
   FCenter := Value;
-  ExecJavaScript(Format('%s.setPosition(new google.maps.LatLng(%g,%g));',[JsVarName,FCenter.Point.Lat,FCenter.Point.Lon]));
+  ExecJavaScript(Format('%s.setPosition(new google.maps.LatLng(%g,%g));',[JsVarName,FCenter.Position.Lat,FCenter.Position.Lng]));
 end;
 
 procedure TStreetView.SetPOV(const Value: TPOV);
