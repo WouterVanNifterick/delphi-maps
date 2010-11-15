@@ -724,9 +724,15 @@ end;
 
 procedure TGoogleMaps.RemoveOverlay(aOverlay: TGOverlay);
 begin
-  FOverlays.Remove(aOverlay);
-  ExecJavaScript(JsVarName+'.removeOverlay('+aOverlay.JsVarName+');');
-  ExecJavaScript('delete '+aOverlay.JsVarName+';');
+//  v2 style:
+//  ExecJavaScript(JsVarName+'.removeOverlay('+aOverlay.JsVarName+');');
+
+//  v3 style:
+//  ExecJavaScript('if('+aOverlay.JsVarName+')'+aOverlay.JsVarName + '.map=null;');
+//  ExecJavaScript('delete '+aOverlay.JsVarName+';');
+  ExecJavaScript(aOverLay.JsVarName+'.setMap(null);');
+
+//  FOverlays.Remove(aOverlay);
 end;
 
 procedure TGoogleMaps.RemoveOverlayByIndex(Index: Integer);
@@ -811,9 +817,20 @@ begin
 end;
 
 procedure TGoogleMaps.ClearOverlays;
+var
+  Overlay:TGOverlay;
 begin
+  // v2 style:
+  // FOverlays.Clear;
+  // ExecJavaScript(JsVarName+'.clearOverlays();');
+
+  // v3 style:
+  for Overlay in FOverlays do
+  begin
+    Overlay.Map := nil;
+  end;
   FOverlays.Clear;
-  ExecJavaScript(JsVarName+'.clearOverlays();');
+
 end;
 
 
@@ -1174,8 +1191,16 @@ end;
 
 procedure TGOverlay.SetMap(const Value: TGoogleMaps);
 begin
-  FMap := Value;
+  if FMap=Value then
+    Exit;
 
+  if Assigned(FMap) and (not Assigned(Value)) then
+  begin
+    FMap.RemoveOverlay( self );
+    Exit;
+  end;
+
+  FMap := Value;
   if not Assigned(FMap) then
     Exit;
 
@@ -1685,16 +1710,16 @@ end;
 
 { TGProjection }
 
-class function TGProjection.fromLatLngToPoint(latLng: TGLatLng;
-  point: TGPoint): TGPoint;
+class function TGProjection.fromLatLngToPoint(latLng: TGLatLng; point: TGPoint): TGPoint;
 begin
-  // not yet implemented
+  raise ENotImplemented.Create('not yet implemented');
 end;
 
 class function TGProjection.fromPointToLatLng(pixel: TGPoint;
   nowrap: boolean): TGLatLng;
 begin
-  // not yet implemented
+  raise ENotImplemented.Create('not yet implemented');
 end;
 
 end.
+
