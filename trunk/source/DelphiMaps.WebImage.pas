@@ -8,7 +8,7 @@ uses
 
 type
   TWebImage = class(TPaintBox)
-  strict private
+  strict protected
     FIsLoaded:Boolean;
     FPicture:TPicture;
     FBitmap:Graphics.TBitmap;
@@ -24,17 +24,17 @@ type
     procedure Resize; override;
     procedure OnMiCopyURLClick(Sender:TObject);
     procedure OnMiOpenURLClick(Sender:TObject);
+    function GetPropertyString: String;virtual;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Refresh;virtual;
     destructor Destroy; override;
     procedure CopyURL;
     procedure OpenURL;
-    procedure OnDownloadProgressEvent(Sender: TDownLoadURL; Progress,
-    ProgressMax: Cardinal; StatusCode: TURLDownloadStatus; StatusText: String;
-    var Cancel: Boolean);
+    procedure OnDownloadProgressEvent(Sender: TDownLoadURL; Progress, ProgressMax: Cardinal; StatusCode: TURLDownloadStatus; StatusText: String; var Cancel: Boolean);
   published
     property URL: String read GetURL write SetURL;
+    property PropertyString:String read GetPropertyString;
   end;
 
 procedure Register;
@@ -43,6 +43,7 @@ implementation
 
 uses
   Windows,
+  StrUtils,
   ClipBrd,
   ShellAPI,
   IoUtils;
@@ -102,6 +103,11 @@ begin
   ClipBoard.AsText := GetURL;
 end;
 
+function TWebImage.GetPropertyString: String;
+begin
+  Result := URL;
+end;
+
 function TWebImage.GetURL: String;
 begin
   Result := FURL;
@@ -112,9 +118,9 @@ procedure TWebImage.OnDownloadProgressEvent(Sender: TDownLoadURL; Progress,
   var Cancel: Boolean);
 begin
   case StatusCode of
-    dsFindingResource: ;
-    dsConnecting: ;
-    dsRedirecting: ;
+    dsFindingResource   : Canvas.TextOut(5,Height-30,'Finding Resource...');
+    dsConnecting        : Canvas.TextOut(5,Height-30,'Connecting...');
+    dsRedirecting       : Canvas.TextOut(5,Height-30,'Redirecting...');
     dsBeginDownloadData : Canvas.TextOut(5,Height-30,'Begin download');
     dsDownloadingData   : Canvas.TextOut(5,Height-30,'Downloading...');
     dsEndDownloadData   : Canvas.TextOut(5,Height-30,'Done.');
@@ -209,6 +215,7 @@ procedure TWebImage.UpdateBitmap;
 var
   Download : TDownLoadURL;
   tmpName:string;
+  S:String;
 begin
   if Width = 0 then
     Exit;
@@ -236,12 +243,29 @@ begin
     Download.ExecuteTarget(nil);
     if FileExists(TmpName) then
     begin
-      FPicture.LoadFromFile(TmpName);
-      FBitmap.SetSize( FPicture.Width, FPicture.Height );
-      FBitmap.Canvas.Draw(0,0,FPicture.Graphic);
-      DrawBitmap;
-      FIsLoaded := true;
-      TFile.Delete(TmpName);
+      try
+        try
+          FPicture.LoadFromFile(TmpName);
+          FBitmap.SetSize( FPicture.Width, FPicture.Height );
+          FBitmap.Canvas.FillRect(FBitmap.Canvas.ClipRect);
+          FBitmap.Canvas.Draw(0,0,FPicture.Graphic);
+          DrawBitmap;
+          FIsLoaded := true;
+        except
+          S := TFile.ReadAllText(TmpName);
+          if Pos('<ServiceException>',S)>0 then
+          begin
+            S := Copy( S, Pos('<ServiceException>',S)+18, Pos('</ServiceException>',S) - Pos('<ServiceException>',S)-18);
+            S := Trim(S);
+            S := ReplaceStr(S,'&quot;','"');
+            raise Exception.Create( S );
+          end
+          else
+            raise;
+        end;
+      finally
+        TFile.Delete(TmpName);
+      end;
     end;
   finally
     FreeAndNil(Download)
