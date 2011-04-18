@@ -39,7 +39,7 @@ contains
   DelphiMaps.DouglasPeuckers in '..\source\DelphiMaps.DouglasPeuckers.pas',
   DelphiMaps.GoogleMaps in '..\source\DelphiMaps.GoogleMaps.pas',
   DelphiMaps.LayerList in '..\source\DelphiMaps.LayerList.pas',
-  DelphiMaps.StaticMap in '..\source\DelphiMaps.StaticMap.pas',
+  DelphiMaps.WMS.Client in '..\source\DelphiMaps.WMS.Client.pas',
   DelphiMaps.Browser in '..\source\DelphiMaps.Browser.pas',
   DelphiMaps.Register in '..\source\DelphiMaps.Register.pas',
   DelphiMaps.StreetView in '..\source\DelphiMaps.StreetView.pas',
@@ -48,6 +48,13 @@ contains
   DelphiMaps.GoogleDirections in '..\source\DelphiMaps.GoogleDirections.pas',
   DelphiMaps.Location in '..\source\DelphiMaps.Location.pas',
   DelphiMaps.GeoCoder in '..\source\DelphiMaps.GeoCoder.pas',
-  DelphiMaps.GeoCoderXML in '..\source\DelphiMaps.GeoCoderXML.pas';
+  DelphiMaps.GeoCoderXML in '..\source\DelphiMaps.GeoCoderXML.pas',
+  DelphiMapsBrowserExternal_TLB in '..\source\DelphiMapsBrowserExternal_TLB.pas',
+  DelphiMaps.Browser.NulContainer in '..\source\DelphiMaps.Browser.NulContainer.pas',
+  DelphiMaps.Browser.External in '..\source\DelphiMaps.Browser.External.pas',
+  DelphiMaps.Browser.ExternalContainer in '..\source\DelphiMaps.Browser.ExternalContainer.pas',
+  DelphiMaps.Browser.IntfDocHostUIHandler in '..\source\DelphiMaps.Browser.IntfDocHostUIHandler.pas',
+  DelphiMaps.Browser.Event in '..\source\DelphiMaps.Browser.Event.pas',
+  DelphiMaps.StaticMap in '..\source\DelphiMaps.StaticMap.pas';
 
 end.
