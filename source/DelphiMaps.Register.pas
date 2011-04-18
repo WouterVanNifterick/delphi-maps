@@ -27,7 +27,8 @@ uses
   DelphiMaps.StreetView,
   DelphiMaps.LayerList,
   DelphiMaps.StaticMap,
-  DelphiMaps.WebImage;
+  DelphiMaps.WebImage,
+  DelphiMaps.WMS.Client;
 
 procedure Register;
 begin
@@ -36,7 +37,8 @@ begin
     TStreetView,
     TGoogleMapsLayersList,
     TStaticMap,
-    TWebImage
+    TWebImage,
+    TWmsImage
     ]);
 end;
 
