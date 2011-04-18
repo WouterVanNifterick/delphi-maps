@@ -22,25 +22,13 @@ object frmMain: TfrmMain
     ExplicitTop = 57
     ExplicitHeight = 221
   end
-  object Memo1: TMemo
-    AlignWithMargins = True
-    Left = 262
-    Top = 32
-    Width = 426
-    Height = 399
-    Margins.Left = 0
-    Align = alClient
-    ScrollBars = ssVertical
-    TabOrder = 0
-    WordWrap = False
-  end
   object pnlTop: TPanel
     Left = 0
     Top = 0
     Width = 691
     Height = 29
     Align = alTop
-    TabOrder = 1
+    TabOrder = 0
     object lblStart: TLabel
       AlignWithMargins = True
       Left = 4
@@ -101,7 +89,7 @@ object frmMain: TfrmMain
     Width = 691
     Height = 28
     Align = alBottom
-    TabOrder = 2
+    TabOrder = 1
     object edURL: TEdit
       AlignWithMargins = True
       Left = 4
@@ -124,6 +112,74 @@ object frmMain: TfrmMain
     Margins.Right = 0
     Align = alLeft
     Indent = 19
+    TabOrder = 2
+  end
+  object Panel1: TPanel
+    Left = 262
+    Top = 29
+    Width = 429
+    Height = 405
+    Align = alClient
     TabOrder = 3
+    ExplicitLeft = 280
+    ExplicitTop = 248
+    ExplicitWidth = 185
+    ExplicitHeight = 41
+    object Splitter2: TSplitter
+      Left = 1
+      Top = 300
+      Width = 427
+      Height = 4
+      Cursor = crVSplit
+      Align = alBottom
+      ExplicitTop = 314
+    end
+    object ListView1: TListView
+      Left = 1
+      Top = 1
+      Width = 427
+      Height = 299
+      Align = alClient
+      Columns = <
+        item
+          Caption = '#'
+          Width = 45
+        end
+        item
+          Caption = 'Start'
+          Width = 0
+        end
+        item
+          Caption = 'End'
+          Width = 0
+        end
+        item
+          Caption = 'Duration'
+          Width = 60
+        end
+        item
+          Caption = 'Distance'
+          Width = 60
+        end
+        item
+          AutoSize = True
+          Caption = 'Instructions'
+        end>
+      RowSelect = True
+      TabOrder = 0
+      ViewStyle = vsReport
+    end
+    object Memo1: TMemo
+      AlignWithMargins = True
+      Left = 1
+      Top = 304
+      Width = 424
+      Height = 97
+      Margins.Left = 0
+      Margins.Top = 0
+      Align = alBottom
+      TabOrder = 1
+      WordWrap = False
+    end
   end
 end

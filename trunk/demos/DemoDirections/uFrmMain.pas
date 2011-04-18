@@ -20,7 +20,6 @@ uses
 
 type
   TfrmMain = class(TForm)
-    Memo1: TMemo;
     pnlTop: TPanel;
     edStart: TEdit;
     edEnd: TEdit;
@@ -31,10 +30,14 @@ type
     edURL: TEdit;
     TreeView1: TTreeView;
     Splitter1: TSplitter;
+    Panel1: TPanel;
+    ListView1: TListView;
+    Memo1: TMemo;
+    Splitter2: TSplitter;
     procedure btnGetDirectionsClick(Sender: TObject);
-  public
-    procedure ShowXML(const aXML:String);
   end;
+
+  procedure XMLtoTreeView(const aXML:String;aTreeView:TTreeView);
 
 var
   frmMain: TfrmMain;
@@ -48,7 +51,7 @@ uses
 {$R *.dfm}
 
 // general function to display any XML data in a TreeView
-procedure TfrmMain.ShowXML(const aXML:String);
+procedure XMLtoTreeView(const aXML:String;aTreeView:TTreeView);
 var
   XMLDocument: IXMLDocument;
   procedure AddNodes(aXMLNode: IXMLNode; aTreeNode: TTreeNode; aIndex:Integer);
@@ -65,7 +68,7 @@ var
     else
     begin
       LValue := aXMLNode.nodeName;
-      LNewNode := TreeView1.Items.AddChild(aTreeNode, LValue);
+      LNewNode := aTreeView.Items.AddChild(aTreeNode, LValue);
       for I := 0 to aXMLNode.childNodes.Count - 1 do
         AddNodes(aXMLNode.childNodes[I], LNewNode,I);
     end;
@@ -75,13 +78,13 @@ begin
   XMLDocument.XML.Text:= aXML;
   XMLDocument.Active := True;
   try
-    TreeView1.Items.BeginUpdate;
-    TreeView1.Items.Clear;
+    aTreeView.Items.BeginUpdate;
+    aTreeView.Items.Clear;
     AddNodes(XMLDocument.Node , nil, 0);
-    TreeView1.Items[0].Expand(True);
-    TreeView1.TopItem := TreeView1.Items[0];
+    aTreeView.Items[0].Expand(True);
+    aTreeView.TopItem := aTreeView.Items[0];
   finally
-    TreeView1.Items.EndUpdate;
+    aTreeView.Items.EndUpdate;
   end;
 end;
 
@@ -98,30 +101,42 @@ begin
   LRequest                  := TGoogleDirectionsRequest.Create(self);
   LRequest.origin.Text      := edStart.Text;
   LRequest.destination.Text := edEnd.Text;
-  edURL.Text               := LRequest.URL;
+  edURL.Text                := LRequest.URL;
   LDirections               := LRequest.GetResponse ;
 
-  ShowXML(LDirections.XML); // show the XML string as a treeview
+  XMLtoTreeView(LDirections.XML, TreeView1); // show the XML string as a treeview
 
   // display the result in a memo
+
+  Memo1.Clear;
   Memo1.Lines.Add('Summary:'+ LDirections.Route.Summary );
   Memo1.Lines.Add('Copyrights:'+ LDirections.Route.Copyrights );
   Memo1.Lines.Add('Distance:'+ LDirections.Route.Leg.Distance.Text );
   Memo1.Lines.Add('From:'+ LDirections.Route.Leg.Start_address );
   Memo1.Lines.Add('From:'+ LDirections.Route.Leg.End_address );
-  Memo1.Lines.Add('');
+
+  ListView1.Clear;
   for I := 0 to LDirections.Route.Leg.Step.Count-1 do
   begin
-    Memo1.Lines.Add( Format('Step [%d] %s', [I, LDirections.Route.Leg.Step[I].Html_instructions]) );
-    Memo1.Lines.Add( Format('From(%s,%s) To(%s,%s) %s %s'#13#10,
-                     [
-                        LDirections.Route.Leg.Step[I]. Start_location.Lat,
-                        LDirections.Route.Leg.Step[I].Start_location.Lng,
-                        LDirections.Route.Leg.Step[I].End_location.Lat,
-                        LDirections.Route.Leg.Step[I].End_location.Lng,
-                        LDirections.Route.Leg.Step[I].Duration.Text,
-                        LDirections.Route.Leg.Step[I].Distance.Text
-                     ]));
+    with ListView1.Items.Add do
+    begin
+      Caption := 'Step '+IntToStr(I+1);
+      SubItems.Add(
+        Format('(%s,%s)',[
+          LDirections.Route.Leg.Step[I].Start_location.Lat,
+          LDirections.Route.Leg.Step[I].Start_location.Lng
+        ])
+       );
+      SubItems.Add(
+        Format('(%s,%s)',[
+          LDirections.Route.Leg.Step[I].End_location.Lat,
+          LDirections.Route.Leg.Step[I].End_location.Lng
+        ])
+       );
+      SubItems.Add(LDirections.Route.Leg.Step[I].Duration.Text);
+      SubItems.Add(LDirections.Route.Leg.Step[I].Distance.Text);
+      SubItems.Add(LDirections.Route.Leg.Step[I].Html_instructions);
+    end;
   end;
 
 
