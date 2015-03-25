@@ -1,4 +1,4 @@
-# delphimaps
+# DelphiMaps
 
 The project contains wrappers for:
 
@@ -8,9 +8,7 @@ The project contains wrappers for:
 - Directions API
 - StreetView
 
-Update 1
-======
-
+**Update 1**
 
 This project has been deprecated, and won't be updated any longer.
 
@@ -26,7 +24,6 @@ Thanks for the nice feedback thank I've received over the years.
 
 Wouter
 
-Update 2
-======
+**Update 2**
 
 Moved repository from Google Code to GitHub, because Google announced the EOL of their service
