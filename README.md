@@ -2,14 +2,15 @@
 
 The project contains wrappers for:
 
-Google Maps API (v3)
-Google/Openstreetmap Static Maps
-Google Geocoding API
-Google Directions API
-Google StreetView?
----
+- Google Maps API (v3)
+- Openstreetmap Static Maps
+- Geocoding API
+- Directions API
+- StreetView
 
-*Update*
+Update 1
+======
+
 
 This project has been deprecated, and won't be updated any longer.
 
@@ -25,6 +26,7 @@ Thanks for the nice feedback thank I've received over the years.
 
 Wouter
 
-*Update*
+Update 2
+======
 
 Moved repository from Google Code to GitHub, because Google announced the EOL of their service
